@@ -20,7 +20,12 @@ Open de app daarna één keer met internet. Vanaf dan werkt hij ook zonder wifi 
 - **Mijn dag:** jouw programma per dag, met de zaal, plus "Nu" en "Hierna" bovenaan. De app waarschuwt als je tussen twee sessies maar 15 minuten hebt en van gebouwdeel moet wisselen (JB-zalen ↔ Room 7–13).
 - **Alle sessies:** het hele programma. Tik op een sessie om die aan te vinken als jouw keuze. Je kunt zoeken op titel of spreker en filteren op track.
 - **Omschrijving:** tik op *Waarom deze sessie* voor meer info of de link naar de officiële sessiepagina.
-- **Terug naar advies:** onderaan zet je alle keuzes terug naar het beginadvies.
+- **Reserve (☆):** tik op het sterretje bij een sessie om die als reserve te markeren. Reserves staan onder "Ook in dit slot", zodat je snel kunt wisselen. In "Alle sessies" filter je ze met *★ Reserve*.
+- **Notities (✎):** typ aantekeningen of vragen bij de sessie die je volgt. Ze worden automatisch bewaard.
+- **Naar je agenda:** onderaan exporteer je je gekozen sessies als `.ics`-bestand voor Outlook of Google Agenda, met zaal, notities en een herinnering 10 minuten van tevoren. Op Android opent het deelmenu; kies je agenda-app of sla het bestand op en open het.
+- **Weergave:** onderaan kies je automatisch, licht of donker.
+- **Versie:** onderaan staat het versienummer en de knop *Controleer op update*.
+- **Terug naar advies:** onderaan zet je alle keuzes terug naar het beginadvies. Reserves en notities blijven staan.
 
 ## Demo-modus
 

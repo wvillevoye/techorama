@@ -10,6 +10,7 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <style>body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
 <title>Techorama 2026</title>
+<script>try{var t=JSON.parse(localStorage.getItem("tr26-theme"));if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;700&display=swap">
@@ -132,6 +133,17 @@ button{font:inherit;color:inherit}
 .info .why b{font-style:normal}
 .info a{color:var(--tc);font-weight:700;font-size:.85rem}
 .alts{border-top:1px solid var(--line)}
+.tools{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin-top:6px}
+.tools .more{margin-top:0}
+.tools .more.has{text-decoration:underline}
+.note{width:100%;margin-top:8px;min-height:84px;font:inherit;font-size:.92rem;padding:9px 11px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);resize:vertical}
+.altrow{display:flex;align-items:center;border-top:1px dashed var(--line)}
+.altrow:first-of-type{border-top:0}
+.altrow .alt{flex:1;min-width:0;border-top:0}
+.star{flex:none;border:0;background:none;font-size:1.35rem;line-height:1;padding:8px 12px;cursor:pointer;color:var(--muted)}
+.star[aria-pressed="true"]{color:var(--accent)}
+.srow .star{position:absolute;right:0;top:0}
+.srow .txt{padding-right:30px}
 .moreall{display:block;width:100%;border:0;border-top:1px dashed var(--line);background:none;padding:10px 14px;color:var(--muted);font-weight:700;font-size:.85rem;cursor:pointer;text-align:left}
 .alts .h{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:8px 14px 2px;font-family:var(--f-mono)}
 .alt{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;width:100%;text-align:left;border:0;background:none;padding:9px 14px;cursor:pointer;border-top:1px dashed var(--line)}
@@ -139,7 +151,7 @@ button{font:inherit;color:inherit}
 .alt:active{background:var(--sunk)}
 .alt .sw{width:8px;height:34px;border-radius:4px;background:var(--tc)}
 .alt .txt{min-width:0}
-.alt .txt b{display:block;font-size:.88rem;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alt .txt b{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;font-size:.88rem;line-height:1.25;overflow:hidden}
 .alt .txt span{font-size:.78rem;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .alt .go{font-family:var(--f-mono);font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:3px 6px;white-space:nowrap}
 
@@ -149,6 +161,7 @@ button{font:inherit;color:inherit}
 .foot{margin-top:22px;display:grid;gap:10px;font-size:.85rem;color:var(--muted)}
 .foot .box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
 .foot h4{margin:0 0 4px;font-family:var(--f-display);font-weight:600;font-size:.95rem;color:var(--ink)}
+.foot button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .foot button{border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:700;font-size:.85rem}
 .update{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:536px;margin:0 auto;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--accent);color:var(--accent-ink);padding:10px 12px 10px 16px;border-radius:12px;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.3)}
 .update button{border:0;background:var(--accent-ink);color:var(--accent);border-radius:8px;padding:8px 14px;font-weight:800;cursor:pointer}
@@ -194,8 +207,21 @@ button{font:inherit;color:inherit}
   <footer class="foot">
     <div class="box">
       <h4>Kiezen</h4>
-      Tik op een alternatief om het je keuze te maken, of ga naar <b>Alle sessies</b> om uit het hele programma aan te vinken. Je keuzes worden op deze telefoon onthouden. Het label bij een sessie laat zien of het een advies (1e, 2e of 3e keus) is of je eigen keuze.
+      Tik op een alternatief om het je keuze te maken, of ga naar <b>Alle sessies</b> om uit het hele programma aan te vinken. Met ☆ zet je een sessie als reserve; die verschijnt dan in het slot zodat je snel kunt wisselen. Keuzes, reserves en notities worden op deze telefoon onthouden. Het label bij een sessie laat zien of het een advies (1e, 2e of 3e keus) is of je eigen keuze.
       <div style="margin-top:8px"><button id="reset" type="button">Terug naar advies</button></div>
+    </div>
+    <div class="box">
+      <h4>Naar je agenda</h4>
+      Zet je gekozen sessies (met zaal, notities en een herinnering 10 minuten van tevoren) in Outlook of Google Agenda.
+      <div style="margin-top:8px"><button id="ics" type="button">Exporteer mijn programma (.ics)</button></div>
+    </div>
+    <div class="box">
+      <h4>Weergave</h4>
+      <div style="display:flex;gap:6px;flex-wrap:wrap" id="themes">
+        <button type="button" data-th="auto">Automatisch</button>
+        <button type="button" data-th="light">Licht</button>
+        <button type="button" data-th="dark">Donker</button>
+      </div>
     </div>
     <div class="box">
       <h4>Versie</h4>
@@ -215,7 +241,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v9";
+const APP_VERSION="v10";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -295,6 +321,9 @@ const $=s=>document.querySelector(s);
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let picks=store.get("tr26-picks",{});
 let open={};
+let notes=store.get("tr26-notes",{});      // sessie-id -> tekst
+let maybe=store.get("tr26-maybe",{});      // sessie-id -> true (reserve)
+let nopen={};                              // slot-key -> notitieveld open
 const key=(d,i)=>d+"-"+i;
 const chosen=(d,i)=>picks[key(d,i)]??0;
 const mins=s=>{const[h,m]=s.split(":").map(Number);return h*60+m};
@@ -331,15 +360,19 @@ function renderMine(){
           <h3>${esc(o[2])}</h3>
           <div class="who">${esc(o[1])}</div>
           ${o[6]?`<p class="desc">${esc(o[6])}</p>`:""}
-          <button class="more" data-k="${k}" aria-expanded="${!!open[k]}">${open[k]?"Minder":o[7]?"Waarom deze sessie":"Meer info"}</button>
+          <div class="tools">
+            <button class="more" data-k="${k}" aria-expanded="${!!open[k]}">${open[k]?"Minder":o[7]?"Waarom deze sessie":"Meer info"}</button>
+            <button class="more notebtn ${notes[o[5]]?"has":""}" data-k="${k}" aria-expanded="${!!nopen[k]}">✎ ${notes[o[5]]?"Notitie ●":"Notitie"}</button>
+          </div>
+          ${nopen[k]?`<textarea class="note" data-id="${o[5]}" placeholder="Aantekeningen of vragen bij deze sessie" aria-label="Notitie">${esc(notes[o[5]]||"")}</textarea>`:""}
           ${open[k]?`<div class="info">${o[7]?`<p class="why"><b>Voor jou:</b> ${esc(o[7])}</p>`:""}<a href="${URL0+o[5]}" target="_blank" rel="noopener">Sessiepagina op techorama.nl ↗</a></div>`:""}
         </div>
-        ${opts.length>1?`<div class="alts"><div class="h">Ook in dit slot</div>${opts.map((a,j)=>j===c||j>=d.slots[i][3]?"":`
-          <button class="alt" data-k="${k}" data-j="${j}" style="${tc(a[3])}" aria-label="Kies ${esc(a[1])} in ${esc(a[0])}">
+        ${opts.length>1?`<div class="alts"><div class="h">Ook in dit slot</div>${opts.map((a,j)=>j===c||(j>=d.slots[i][3]&&!maybe[a[5]])?"":`
+          <div class="altrow" style="${tc(a[3])}"><button class="alt" data-k="${k}" data-j="${j}" aria-label="Kies ${esc(a[1])} in ${esc(a[0])}">
             <span class="sw"></span>
-            <span class="txt"><b>${esc(a[2])}</b><span>${esc(a[0])} · ${esc(a[1])}</span></span>
-            <span class="go">${j+1}e · kies</span>
-          </button>`).join("")}<button class="moreall" data-k="${k}" type="button">Alle ${opts.length} sessies in dit slot bekijken en aanvinken →</button></div>`:""}
+            <span class="txt"><b>${maybe[a[5]]?"★ ":""}${esc(a[2])}</b><span>${esc(a[0])} · ${esc(a[1])}</span></span>
+            <span class="go">${j<d.slots[i][3]?(j+1)+"e · kies":"reserve · kies"}</span>
+          </button><button class="star" data-id="${a[5]}" aria-pressed="${!!maybe[a[5]]}" aria-label="Reserve">${maybe[a[5]]?"★":"☆"}</button></div>`).join("")}<button class="moreall" data-k="${k}" type="button">Alle ${opts.length} sessies in dit slot bekijken en aanvinken →</button></div>`:""}
       </div></article>`;
     const nx=d.slots[i+1];
     if(nx){
@@ -365,7 +398,7 @@ function renderSlots(){
 }
 function renderChips(){
   const codes=[...new Set(DAYS[day].slots.flatMap(s=>s[2].map(o=>o[3])))];
-  $("#chips").innerHTML=`<button class="fchip" data-t="" aria-pressed="${!fTrack}">Alles</button>`+codes.map(c=>`<button class="fchip" data-t="${c}" style="${tc(c)}" aria-pressed="${fTrack===c}"><i></i>${T[c][1]}</button>`).join("");
+  $("#chips").innerHTML=`<button class="fchip" data-t="" aria-pressed="${!fTrack}">Alles</button>`+codes.map(c=>`<button class="fchip" data-t="${c}" style="${tc(c)}" aria-pressed="${fTrack===c}"><i></i>${T[c][1]}</button>`).join("")+`<button class="fchip" data-t="__maybe" aria-pressed="${fTrack==="__maybe"}">★ Reserve</button>`;
 }
 function renderAll(){
   renderChips();
@@ -373,12 +406,12 @@ function renderAll(){
   let h="";
   d.slots.forEach(([s,e,opts,nAdv],i)=>{
     const k=key(day,i), c=chosen(day,i);
-    const rows=opts.map((o,j)=>[o,j]).filter(([o,j])=>j===c||((!fTrack||o[3]===fTrack)&&(!q||(o[2]+" "+o[1]).toLowerCase().includes(q))));
+    const rows=opts.map((o,j)=>[o,j]).filter(([o,j])=>j===c||((!fTrack||(fTrack==="__maybe"?maybe[o[5]]:o[3]===fTrack))&&(!q||(o[2]+" "+o[1]).toLowerCase().includes(q))));
     if(!rows.some(([o,j])=>j!==c)&&(fTrack||q)) return;
     h+=`<section class="aslot" id="a-${k}"><h2><b>${s}–${e}</b><span>${opts.length>1?opts.length+" sessies":"1 sessie"}</span></h2>`;
     rows.forEach(([o,j])=>{
       h+=`<div class="srow" role="checkbox" tabindex="0" aria-checked="${j===c}" data-k="${k}" data-j="${j}" style="${tc(o[3])}">
-        <span class="box">✓</span>
+        <button class="star" data-id="${o[5]}" aria-pressed="${!!maybe[o[5]]}" aria-label="Reserve">${maybe[o[5]]?"★":"☆"}</button><span class="box">✓</span>
         <span class="txt"><b>${esc(o[2])}</b><div class="w">${esc(o[1])}</div>${o[6]?`<div class="d">${esc(o[6])}</div>`:""}
           <div class="meta"><span class="chip room">${esc(o[0])}</span><span class="chip lvl">${T[o[3]][1]} · ${L[o[4]]}</span>${j<nAdv?`<span class="chip rank ${j?"alt":""}">${j+1}e advies</span>`:""}</div>
           <a href="${URL0+o[5]}" target="_blank" rel="noopener">Sessiepagina ↗</a></span></div>`;
@@ -426,24 +459,71 @@ function pickRow(row){
 }
 document.addEventListener("keydown",ev=>{const r=ev.target.closest&&ev.target.closest(".srow");if(r&&(ev.key===" "||ev.key==="Enter")){ev.preventDefault();pickRow(r)}});
 $("#q").addEventListener("input",ev=>{fq=ev.target.value;renderAll()});
+document.addEventListener("input",ev=>{
+  const ta=ev.target.closest&&ev.target.closest(".note"); if(!ta) return;
+  const id=ta.dataset.id; if(ta.value.trim()) notes[id]=ta.value; else delete notes[id];
+  store.set("tr26-notes",notes);
+  const b=ta.closest(".pick").querySelector(".notebtn"); if(b){b.classList.toggle("has",!!notes[id]);b.textContent="✎ "+(notes[id]?"Notitie ●":"Notitie")}
+});
 document.addEventListener("click",ev=>{
   if(ev.target.closest("#now")){jumpNow();return}
   const vw=ev.target.closest(".views button");
   if(vw){view=vw.dataset.view;store.set("tr26-view",view);renderSlots();window.scrollTo({top:0});return}
   const fc=ev.target.closest(".fchip");
   if(fc){fTrack=fc.dataset.t;renderAll();return}
+  const st=ev.target.closest(".star");
+  if(st){const id=st.dataset.id;if(maybe[id])delete maybe[id];else maybe[id]=true;store.set("tr26-maybe",maybe);const y=scrollY;renderSlots();window.scrollTo({top:y});toast(maybe[id]?"Als reserve gemarkeerd":"Reserve verwijderd");return}
+  const nb=ev.target.closest(".notebtn");
+  if(nb){nopen[nb.dataset.k]=!nopen[nb.dataset.k];const y=scrollY;renderSlots();window.scrollTo({top:y});const ta=document.querySelector(".slot .note");if(nopen[nb.dataset.k]&&ta)ta.focus();return}
   const row=ev.target.closest(".srow");
   if(row&&!ev.target.closest("a")){pickRow(row);return}
   const ma=ev.target.closest(".moreall");
   if(ma){view="all";fTrack="";fq="";$("#q").value="";store.set("tr26-view",view);renderSlots();const el=document.getElementById("a-"+ma.dataset.k);el&&el.scrollIntoView({block:"start"});return}
   const tab=ev.target.closest(".days button");
   if(tab){day=+tab.dataset.day;store.set("tr26-day",day);renderSlots();window.scrollTo({top:0});return}
-  const more=ev.target.closest(".more");
+  const more=ev.target.closest(".more:not(.notebtn)");
   if(more){open[more.dataset.k]=!open[more.dataset.k];renderSlots();return}
   const alt=ev.target.closest(".alt");
   if(alt){picks[alt.dataset.k]=+alt.dataset.j;if(!picks[alt.dataset.k])delete picks[alt.dataset.k];store.set("tr26-picks",picks);renderSlots();renderNow();toast("Keuze aangepast");return}
+  if(ev.target.id==="ics"){exportIcs();return}
+  const th=ev.target.closest("#themes button");
+  if(th){setTheme(th.dataset.th);return}
   if(ev.target.id==="reset"){picks={};store.set("tr26-picks",picks);renderSlots();renderNow();toast("Terug naar advies")}
 });
+
+function setTheme(t){
+  store.set("tr26-theme",t);
+  if(t==="auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme=t;
+  const dark=t==="dark"||(t==="auto"&&matchMedia("(prefers-color-scheme: dark)").matches);
+  document.querySelector('meta[name="theme-color"]').content=dark?"#0D1020":"#F3F4F8";
+  document.querySelectorAll("#themes button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.th===t));
+}
+setTheme(store.get("tr26-theme","auto"));
+
+// .ics met alleen de gekozen sessies. Tijden zijn Nederlandse tijd; op 27/28 okt is dat UTC+1 (zomertijd is dan voorbij).
+function buildIcs(){
+  const z=n=>String(n).padStart(2,"0");
+  const utc=(date,t)=>{const[y,m,dd]=date.split("-").map(Number),[H,M]=t.split(":").map(Number);const x=new Date(Date.UTC(y,m-1,dd,H-1,M));return `${x.getUTCFullYear()}${z(x.getUTCMonth()+1)}${z(x.getUTCDate())}T${z(x.getUTCHours())}${z(x.getUTCMinutes())}00Z`};
+  const esc2=s=>String(s).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\r?\n/g,"\\n");
+  const fold=l=>{let out="";while(l.length>73){out+=l.slice(0,73)+"\r\n ";l=l.slice(73)}return out+l};
+  const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
+  const rows=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Techorama 2026 app//NL","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:Techorama 2026"];
+  DAYS.forEach((d,di)=>d.slots.forEach(([s,e,opts],i)=>{
+    const o=opts[chosen(di,i)];
+    const desc=[o[1]+" · "+T[o[3]][1], o[6], notes[o[5]]?"Notitie: "+notes[o[5]]:"", URL0+o[5]].filter(Boolean).join("\n");
+    rows.push("BEGIN:VEVENT","UID:"+o[5]+"-"+di+"-"+i+"@techorama26.app","DTSTAMP:"+stamp,"DTSTART:"+utc(d.date,s),"DTEND:"+utc(d.date,e),
+      "SUMMARY:"+esc2(o[2]+" ("+o[0]+")"),"LOCATION:"+esc2(o[0]),"DESCRIPTION:"+esc2(desc),"URL:"+URL0+o[5],
+      "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+esc2(o[2]+" begint over 10 minuten in "+o[0]),"TRIGGER:-PT10M","END:VALARM","END:VEVENT");
+  }));
+  rows.push("END:VCALENDAR");
+  return rows.map(fold).join("\r\n")+"\r\n";
+}
+function exportIcs(){
+  const file=new File([buildIcs()],"techorama-2026.ics",{type:"text/calendar"});
+  const dl=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download="techorama-2026.ics";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast("techorama-2026.ics opgeslagen; open het bestand om te importeren")};
+  if(navigator.canShare&&navigator.canShare({files:[file]})) navigator.share({files:[file],title:"Techorama 2026"}).catch(e=>{if(e&&e.name!=="AbortError")dl()});
+  else dl();
+}
 
 renderSlots();renderNow();
 $("#ver").textContent="Techorama-app "+APP_VERSION;
@@ -454,10 +534,11 @@ function jumpNow(){
   el&&el.scrollIntoView({block:"center"});
 }
 if(view==="mine") jumpNow();
-setInterval(()=>{renderNow();renderSlots()},60000);
+const typing=()=>document.activeElement&&document.activeElement.tagName==="TEXTAREA";
+setInterval(()=>{renderNow();if(!typing())renderSlots()},60000);
 window.addEventListener("hashchange",()=>{day=Math.max(0,DAYS.findIndex(d=>d.date===amsNow().date));renderNow();renderSlots();if(view==="mine")jumpNow()});
 let hiddenAt=0;
-document.addEventListener("visibilitychange",()=>{if(document.hidden){hiddenAt=Date.now();return}renderNow();renderSlots();if(view==="mine"&&hiddenAt&&Date.now()-hiddenAt>10*60*1000)jumpNow()});
+document.addEventListener("visibilitychange",()=>{if(document.hidden){hiddenAt=Date.now();return}renderNow();if(!typing())renderSlots();if(view==="mine"&&hiddenAt&&Date.now()-hiddenAt>10*60*1000)jumpNow()});
 if("serviceWorker" in navigator){
   // Nieuwe versie gedetecteerd: de nieuwe service worker neemt het over terwijl de pagina nog de oude code toont.
   const had=!!navigator.serviceWorker.controller;
