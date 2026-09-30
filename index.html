@@ -140,6 +140,8 @@ button{font:inherit;color:inherit}
 .tools{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin-top:6px}
 .tools .more{margin-top:0}
 .tools .more.has{text-decoration:underline}
+.notehead{margin-top:8px;font-size:.8rem;line-height:1.35;color:var(--muted);border-left:3px solid var(--tc);padding-left:8px}
+.notehead b{color:var(--ink)}
 .note{width:100%;margin-top:8px;min-height:84px;font:inherit;font-size:.92rem;padding:9px 11px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);resize:vertical}
 .altrow{display:flex;align-items:center;border-top:1px dashed var(--line)}
 .altrow:first-of-type{border-top:0}
@@ -225,6 +227,11 @@ button{font:inherit;color:inherit}
       <div style="margin-top:8px"><button id="ics" type="button">Exporteer mijn programma (.ics)</button></div>
     </div>
     <div class="box">
+      <h4>Mijn notities</h4>
+      Deel of kopieer al je notities als tekst, gesorteerd op dag en tijd, elk met sessie, zaal en spreker als kop.
+      <div style="margin-top:8px"><button id="notes-share" type="button">Deel mijn notities</button></div>
+    </div>
+    <div class="box">
       <h4>Back-up en overzetten</h4>
       Bewaar je keuzes, reserves en notities, of zet ze over naar een andere telefoon.
       <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
@@ -260,7 +267,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v13";
+const APP_VERSION="v14";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -383,7 +390,7 @@ function renderMine(){
             <button class="more" data-k="${k}" aria-expanded="${!!open[k]}">${open[k]?"Minder":o[7]?"Waarom deze sessie":"Meer info"}</button>
             <button class="more notebtn ${notes[o[5]]?"has":""}" data-k="${k}" aria-expanded="${!!nopen[k]}">✎ ${notes[o[5]]?"Notitie ●":"Notitie"}</button>
           </div>
-          ${nopen[k]?`<textarea class="note" data-id="${o[5]}" placeholder="Aantekeningen of vragen bij deze sessie" aria-label="Notitie">${esc(notes[o[5]]||"")}</textarea>`:""}
+          ${nopen[k]?`<div class="notehead">✎ ${d.name} ${s}–${e} · ${esc(o[0])}<br><b>${esc(o[2])}</b> · ${esc(o[1])}</div><textarea class="note" data-id="${o[5]}" placeholder="Aantekeningen of vragen bij deze sessie" aria-label="Notitie">${esc(notes[o[5]]||"")}</textarea>`:""}
           ${open[k]?`<div class="info">${o[7]?`<p class="why"><b>Voor jou:</b> ${esc(o[7])}</p>`:""}<a href="${URL0+o[5]}" target="_blank" rel="noopener">Sessiepagina op techorama.nl ↗</a></div>`:""}
         </div>
         ${opts.length>1?`<div class="alts"><div class="h">Ook in dit slot</div>${opts.map((a,j)=>j===c||(j>=d.slots[i][3]&&!maybe[a[5]])?"":`
@@ -506,6 +513,7 @@ document.addEventListener("click",ev=>{
   const alt=ev.target.closest(".alt");
   if(alt){picks[alt.dataset.k]=+alt.dataset.j;if(!picks[alt.dataset.k])delete picks[alt.dataset.k];store.set("tr26-picks",picks);renderSlots();renderNow();toast("Keuze aangepast");return}
   if(ev.target.id==="ics"){exportIcs();return}
+  if(ev.target.id==="notes-share"){shareNotes();return}
   if(ev.target.id==="rm-do"){saveBackup();return}
   if(ev.target.id==="rm-later"){store.set("tr26-snooze",Date.now()+12*HOUR);updateRemind();return}
   if(ev.target.id==="bk-save"){saveBackup();return}
@@ -548,6 +556,27 @@ function exportIcs(){
   const dl=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download="techorama-2026.ics";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast("techorama-2026.ics opgeslagen; open het bestand om te importeren")};
   if(navigator.canShare&&navigator.canShare({files:[file]})) navigator.share({files:[file],title:"Techorama 2026"}).catch(e=>{if(e&&e.name!=="AbortError")dl()});
   else dl();
+}
+
+// ---- Notities als tekst: elke notitie met dag, tijd, zaal, titel en spreker als kop
+function notesText(){
+  const info={};
+  DAYS.forEach((d,di)=>d.slots.forEach(sl=>sl[2].forEach(o=>{info[o[5]]={di,d,s:sl[0],e:sl[1],o}})));
+  const items=Object.entries(notes).filter(([id])=>info[id]).map(([id,t])=>({...info[id],t}))
+    .sort((a,b)=>a.di-b.di||mins(a.s)-mins(b.s));
+  if(!items.length) return "";
+  const fmt=new Intl.DateTimeFormat("nl-NL",{day:"numeric",month:"long",timeZone:"Europe/Amsterdam"});
+  return "Techorama 2026: mijn notities\n\n"+items.map(x=>{
+    const dt=fmt.format(new Date(x.d.date+"T12:00:00Z"));
+    return `${x.d.name} ${dt}, ${x.s}–${x.e} · ${x.o[0]}\n${x.o[2]}\n${x.o[1]}\n${"-".repeat(24)}\n${x.t.trim()}`;
+  }).join("\n\n\n")+"\n";
+}
+function shareNotes(){
+  const text=notesText();
+  if(!text){toast("Je hebt nog geen notities");return}
+  const copy=()=>(navigator.clipboard?navigator.clipboard.writeText(text).then(()=>toast("Notities gekopieerd")):Promise.reject()).catch(()=>prompt("Kopieer je notities:",text));
+  if(navigator.share) navigator.share({title:"Techorama 2026: mijn notities",text}).catch(e=>{if(e&&e.name!=="AbortError")copy()});
+  else copy();
 }
 
 // ---- Back-up en overzetten: keuzes, reserves en notities als bestand of als link
