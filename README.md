@@ -72,5 +72,5 @@ Een service worker werkt alleen via **https**, dus de bestanden moeten op een we
 3. Upload of push opnieuw. De telefoon haalt de nieuwe versie op bij de volgende keer openen met internet. Soms moet je de app twee keer openen.
 
 ## Handig
-- Voeg `#demo` toe aan de URL om te zien hoe de app eruitziet op dinsdag om 11:40.
+- Voeg `#demo` toe aan de URL om te zien hoe de app eruitziet op dinsdag om 11:40. Kies zelf een moment met `#demo=di-09:20` of `#demo=wo-13:30`. Ook `#demo=voor-10:00` (dag ervoor) en `#demo=na-10:00` (dag erna) werken.
 - Je keuzes worden alleen op je telefoon bewaard, niet online.

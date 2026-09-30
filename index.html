@@ -292,7 +292,12 @@ const isJB=r=>r.includes("(JB)");
 const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
 
 function amsNow(){
-  if(location.hash==="#demo") return {date:"2026-10-27",m:mins("11:40")};
+  // #demo = di 11:40; #demo=wo-13:30 = woensdag 13:30; ook di/wo/voor (dag ervoor) en na (dag erna) zijn mogelijk
+  const dm=location.hash.match(/^#demo(?:=(di|wo|voor|na)-([0-9]{1,2}):([0-9][0-9]))?$/i);
+  if(dm){
+    const dd={di:"2026-10-27",wo:"2026-10-28",voor:"2026-10-26",na:"2026-10-29"}[(dm[1]||"di").toLowerCase()];
+    return {date:dd,m:dm[2]?+dm[2]*60+ +dm[3]:mins("11:40")};
+  }
   const p=Object.fromEntries(new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Amsterdam",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date()).map(x=>[x.type,x.value]));
   return {date:`${p.year}-${p.month}-${p.day}`,m:+p.hour*60+ +p.minute};
 }
@@ -438,6 +443,7 @@ function jumpNow(){
 }
 if(view==="mine") jumpNow();
 setInterval(()=>{renderNow();renderSlots()},60000);
+window.addEventListener("hashchange",()=>{day=Math.max(0,DAYS.findIndex(d=>d.date===amsNow().date));renderNow();renderSlots();if(view==="mine")jumpNow()});
 let hiddenAt=0;
 document.addEventListener("visibilitychange",()=>{if(document.hidden){hiddenAt=Date.now();return}renderNow();renderSlots();if(view==="mine"&&hiddenAt&&Date.now()-hiddenAt>10*60*1000)jumpNow()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
