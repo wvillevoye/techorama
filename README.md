@@ -22,6 +22,27 @@ Open de app daarna één keer met internet. Vanaf dan werkt hij ook zonder wifi 
 - **Omschrijving:** tik op *Waarom deze sessie* voor meer info of de link naar de officiële sessiepagina.
 - **Terug naar advies:** onderaan zet je alle keuzes terug naar het beginadvies.
 
+## Demo-modus
+
+Wil je zien hoe de app zich gedraagt tijdens de conferentie? Zet `#demo` achter het adres. De app doet dan alsof het een ander moment is, op Nederlandse tijd.
+
+| Adres eindigt op | De app doet alsof het is |
+|---|---|
+| `#demo` | dinsdag 27 oktober, 11:40 |
+| `#demo=di-09:35` | dinsdag, 09:35 (eigen tijd) |
+| `#demo=wo-13:30` | woensdag 28 oktober, 13:30 |
+| `#demo=voor-10:00` | maandag 26 oktober, de dag ervoor |
+| `#demo=na-10:00` | donderdag 29 oktober, de dag erna |
+
+Voorbeeld: `https://wvillevoye.github.io/techorama/#demo=wo-13:30`
+
+Je ziet dan onder andere:
+- **Zwarte blok bovenaan:** "Nu bezig" en "Hierna", "Pauze", "Klaar voor vandaag" of "Afgelopen".
+- **Tijdsloten:** het lopende slot krijgt een groene rand en afgelopen slots een ✓.
+- **Springen:** de app scrolt naar het huidige slot, en tikken op het zwarte blok brengt je er terug.
+
+Als je alleen het stuk na de `#` in de adresbalk aanpast, springt de app direct mee. Haal `#demo` weer weg om terug te gaan naar de echte tijd.
+
 ## Goed om te weten
 
 - Voor sessies zonder eigen omschrijving staat alleen een link naar techorama.nl.
@@ -72,5 +93,5 @@ Een service worker werkt alleen via **https**, dus de bestanden moeten op een we
 3. Upload of push opnieuw. De telefoon haalt de nieuwe versie op bij de volgende keer openen met internet. Soms moet je de app twee keer openen.
 
 ## Handig
-- Voeg `#demo` toe aan de URL om te zien hoe de app eruitziet op dinsdag om 11:40. Kies zelf een moment met `#demo=di-09:20` of `#demo=wo-13:30`. Ook `#demo=voor-10:00` (dag ervoor) en `#demo=na-10:00` (dag erna) werken.
+- Demo-tijden staan hierboven bij *Demo-modus*.
 - Je keuzes worden alleen op je telefoon bewaard, niet online.
