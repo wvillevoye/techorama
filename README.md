@@ -1,4 +1,37 @@
-# Techorama 2026 – offline app
+# Techorama 2026: programma-app
+
+Handige app met het programma van Techorama (27–28 oktober, Utrecht). Je ziet per tijdslot in welke zaal je moet zijn, en je kunt zelf je sessies kiezen.
+
+**Openen:** https://wvillevoye.github.io/techorama/
+
+<img src="qr.png" alt="QR-code naar de app" width="220">
+
+Scan de QR-code met je telefoon.
+
+## Installeren als app (30 seconden)
+
+- **Android (Chrome):** tik op ⋮ en kies *App installeren* of *Toevoegen aan startscherm*.
+- **iPhone (Safari):** tik op de deelknop en kies *Zet op beginscherm*.
+
+Open de app daarna één keer met internet. Vanaf dan werkt hij ook zonder wifi of mobiel bereik.
+
+## Gebruik
+
+- **Mijn dag:** jouw programma per dag, met de zaal, plus "Nu" en "Hierna" bovenaan. De app waarschuwt als je tussen twee sessies maar 15 minuten hebt en van gebouwdeel moet wisselen (JB-zalen ↔ Room 7–13).
+- **Alle sessies:** het hele programma. Tik op een sessie om die aan te vinken als jouw keuze. Je kunt zoeken op titel of spreker en filteren op track.
+- **Omschrijving:** tik op *Waarom deze sessie* voor meer info of de link naar de officiële sessiepagina.
+- **Terug naar advies:** onderaan zet je alle keuzes terug naar het beginadvies.
+
+## Goed om te weten
+
+- Voor sessies zonder eigen omschrijving staat alleen een link naar techorama.nl.
+- Je keuzes worden alleen op je eigen telefoon bewaard.
+- Het programma kan nog wijzigen. Controleer de week ervoor het schema op techorama.nl.
+- Open de app een paar dagen voor de conferentie nog een keer met wifi. Dan haalt hij eventuele updates op.
+
+---
+
+# Voor beheerders
 
 Installeerbare web-app (PWA) met je persoonlijke Techorama-programma. Na één keer openen werkt de app ook zonder internet.
 
@@ -11,6 +44,7 @@ Installeerbare web-app (PWA) met je persoonlijke Techorama-programma. Na één k
 | `sw.js` | Service worker: bewaart de app op de telefoon voor offline gebruik |
 | `icons/` | App-iconen (192, 512 en maskable voor Android) |
 | `.gitlab-ci.yml` | Publiceert automatisch via GitLab Pages |
+| `qr.png` | QR-code naar de app (alleen voor de README) |
 
 ## Online zetten
 
