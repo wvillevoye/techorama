@@ -133,6 +133,10 @@ button{font:inherit;color:inherit}
 .info .why b{font-style:normal}
 .info a{color:var(--tc);font-weight:700;font-size:.85rem}
 .alts{border-top:1px solid var(--line)}
+.remind{margin-top:12px;display:grid;gap:8px;background:var(--surface);border:1px solid var(--accent);border-radius:var(--r);padding:10px 14px;font-size:.9rem}
+.remind div{display:flex;gap:8px}
+.remind button{border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:700;font-size:.85rem}
+.remind #rm-do{background:var(--accent);color:var(--accent-ink);border-color:transparent}
 .tools{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin-top:6px}
 .tools .more{margin-top:0}
 .tools .more.has{text-decoration:underline}
@@ -185,6 +189,11 @@ button{font:inherit;color:inherit}
       <button role="tab" data-view="all">Alle sessies</button>
     </div>
   </header>
+
+  <div class="remind" id="remind" role="status" hidden>
+    <span>Je hebt keuzes of notities zonder recente back-up.</span>
+    <div><button id="rm-do" type="button">Back-up maken</button><button id="rm-later" type="button">Later</button></div>
+  </div>
 
   <section class="now" id="now" aria-live="polite"></section>
 
@@ -251,7 +260,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v11";
+const APP_VERSION="v12";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -432,6 +441,7 @@ function renderAll(){
 }
 
 function renderNow(){
+  if(typeof updateRemind==="function") updateRemind();
   const n=amsNow(), first=DAYS[0].date, last=DAYS[1].date;
   const line=(label,d,i,dot)=>{const[s,e,opts]=DAYS[d].slots[i],o=opts[chosen(d,i)];
     return `<div class="lbl">${dot?'<span class="dot"></span>':""}${label}</div><div class="big">${esc(o[2])}</div><div class="row"><span class="room">${esc(o[0])}</span><span class="sub">${s}–${e} · ${esc(o[1])}</span></div>`};
@@ -496,6 +506,8 @@ document.addEventListener("click",ev=>{
   const alt=ev.target.closest(".alt");
   if(alt){picks[alt.dataset.k]=+alt.dataset.j;if(!picks[alt.dataset.k])delete picks[alt.dataset.k];store.set("tr26-picks",picks);renderSlots();renderNow();toast("Keuze aangepast");return}
   if(ev.target.id==="ics"){exportIcs();return}
+  if(ev.target.id==="rm-do"){saveBackup();return}
+  if(ev.target.id==="rm-later"){store.set("tr26-snooze",Date.now()+12*HOUR);updateRemind();return}
   if(ev.target.id==="bk-save"){saveBackup();return}
   if(ev.target.id==="bk-load"){$("#bk-file").click();return}
   if(ev.target.id==="bk-link"){shareLink();return}
@@ -560,10 +572,23 @@ function describe(s){
 function askRestore(s,bron){
   if(confirm(`Uit ${bron} terugzetten: ${describe(s)}?\n\nDit vervangt wat nu op dit toestel staat.`)){applySnapshot(s);toast("Teruggezet")}
 }
+// Herinnering: als er data is die na >24 uur nog niet is geback-upt (of sinds de laatste back-up is veranderd)
+const HOUR=36e5;
+const hasData=()=>Object.keys(picks).length+Object.keys(maybe).length+Object.keys(notes).length>0;
+function markBackup(){ store.set("tr26-backup",{t:Date.now(),h:JSON.stringify(snapshot())}); updateRemind(); }
+function updateRemind(){
+  let show=false;
+  if(hasData()){
+    let first=store.get("tr26-first",0); if(!first){first=Date.now();store.set("tr26-first",first)}
+    const last=store.get("tr26-backup",null), since=Date.now()-(last?last.t:first);
+    show=since>24*HOUR&&(!last||last.h!==JSON.stringify(snapshot()))&&Date.now()>store.get("tr26-snooze",0);
+  }
+  $("#remind").hidden=!show;
+}
 function saveBackup(){
   const file=new File([JSON.stringify(snapshot(),null,1)],"techorama-backup.json",{type:"application/json"});
-  const dl=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download="techorama-backup.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast("Back-up opgeslagen")};
-  if(navigator.canShare&&navigator.canShare({files:[file]})) navigator.share({files:[file],title:"Techorama back-up"}).catch(e=>{if(e&&e.name!=="AbortError")dl()});
+  const dl=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download="techorama-backup.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);markBackup();toast("Back-up opgeslagen")};
+  if(navigator.canShare&&navigator.canShare({files:[file]})) navigator.share({files:[file],title:"Techorama back-up"}).then(markBackup).catch(e=>{if(e&&e.name!=="AbortError")dl()});
   else dl();
 }
 $("#bk-file").addEventListener("change",ev=>{
@@ -574,8 +599,8 @@ const b64=s=>btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/
 const unb64=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0)));
 function shareLink(){
   const url=location.origin+location.pathname+"#restore="+b64(JSON.stringify(snapshot()));
-  const done=()=>toast("Link gekopieerd. Open hem op de andere telefoon");
-  if(navigator.share) navigator.share({title:"Techorama overzetten",url}).catch(e=>{if(e&&e.name!=="AbortError")copy()});
+  const done=()=>{markBackup();toast("Link gekopieerd. Open hem op de andere telefoon")};
+  if(navigator.share) navigator.share({title:"Techorama overzetten",url}).then(markBackup).catch(e=>{if(e&&e.name!=="AbortError")copy()});
   else copy();
   function copy(){ (navigator.clipboard?navigator.clipboard.writeText(url).then(done):Promise.reject()).catch(()=>prompt("Kopieer deze link:",url)) }
 }
