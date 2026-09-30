@@ -137,6 +137,11 @@ button{font:inherit;color:inherit}
 .remind div{display:flex;gap:8px}
 .remind button{border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:700;font-size:.85rem}
 .remind #rm-do{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.welcome{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.welcome h2{font-family:var(--f-display);font-size:1.15rem;margin:0 0 8px}
+.welcome ol{margin:0 0 12px;padding-left:20px;display:grid;gap:6px}
+.welcome button{border:0;background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:9px 14px;font-weight:800;cursor:pointer}
+.emptyslot{padding:16px;color:var(--muted);font-style:italic}
 .tools{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin-top:6px}
 .tools .more{margin-top:0}
 .tools .more.has{text-decoration:underline}
@@ -218,8 +223,8 @@ button{font:inherit;color:inherit}
   <footer class="foot">
     <div class="box">
       <h4>Kiezen</h4>
-      Tik op een alternatief om het je keuze te maken, of ga naar <b>Alle sessies</b> om uit het hele programma aan te vinken. Met ☆ zet je een sessie als reserve; die verschijnt dan in het slot zodat je snel kunt wisselen. Keuzes, reserves en notities worden op deze telefoon onthouden. Het label bij een sessie laat zien of het een advies (1e, 2e of 3e keus) is of je eigen keuze.
-      <div style="margin-top:8px"><button id="reset" type="button">Terug naar advies</button></div>
+      <span id="kiezen-tekst"></span>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button id="reset" type="button">Terug naar advies</button><button id="to-empty" type="button" hidden>Begin met een lege dag</button></div>
     </div>
     <div class="box">
       <h4>Naar je agenda</h4>
@@ -267,7 +272,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v14";
+const APP_VERSION="v15";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -345,13 +350,25 @@ DAYS.forEach((d,di)=>d.slots.forEach(sl=>{
 
 const $=s=>document.querySelector(s);
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+// Modus: "advice" = het advies van de maker is de standaard (voor bestaande gebruikers, hun weergave verandert niet);
+// "empty" = nieuwe gebruikers beginnen met een lege dag. Opgeslagen gegevens worden nooit overschreven.
+function initMode(){
+  const m=store.get("tr26-mode",null); if(m==="advice"||m==="empty") return m;
+  let existing=false;
+  try{ existing=Object.keys(localStorage).some(k=>k.startsWith("tr26-")) }catch(e){}
+  if(navigator.serviceWorker&&navigator.serviceWorker.controller) existing=true;   // app werd hier al eerder gebruikt
+  const v=existing?"advice":"empty"; store.set("tr26-mode",v); return v;
+}
+let mode=initMode();
 let picks=store.get("tr26-picks",{});
 let open={};
 let notes=store.get("tr26-notes",{});      // sessie-id -> tekst
 let maybe=store.get("tr26-maybe",{});      // sessie-id -> true (reserve)
 let nopen={};                              // slot-key -> notitieveld open
 const key=(d,i)=>d+"-"+i;
-const chosen=(d,i)=>picks[key(d,i)]??0;
+const chosen=(d,i)=>picks[key(d,i)]??(mode==="advice"?0:-1);   // -1 = nog niets gekozen
+const anyChosen=()=>DAYS.some((d,di)=>d.slots.some((_,i)=>chosen(di,i)>=0));
+function setPick(k,j){ if(mode==="advice"&&j===0) delete picks[k]; else picks[k]=j; store.set("tr26-picks",picks); }
 const mins=s=>{const[h,m]=s.split(":").map(Number);return h*60+m};
 const isJB=r=>r.includes("(JB)");
 const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
@@ -371,42 +388,54 @@ let day=(()=>{const n=amsNow();const i=DAYS.findIndex(d=>d.date===n.date);return
 function tc(t){const c=T[t][0];return `--tc:var(--${c});--tint:var(--${c}-t)`}
 
 function renderMine(){
-  const d=DAYS[day], n=amsNow(), today=n.date===d.date;
+  const d=DAYS[day], n=amsNow(), today=n.date===d.date, advice=mode==="advice";
   document.querySelectorAll(".days button").forEach(b=>b.setAttribute("aria-selected",+b.dataset.day===day));
-  let h="";
-  d.slots.forEach(([s,e,opts],i)=>{
-    const c=chosen(day,i), o=opts[c];
+  let h=advice||anyChosen()?"":`<div class="welcome">
+      <h2>Welkom! Je dag is nog leeg</h2>
+      <ol>
+        <li>Tik hierboven op <b>Alle sessies</b>.</li>
+        <li>Zoek een sessie (of filter op track) en tik erop om hem aan te vinken. Met <b>☆</b> zet je een reserve.</li>
+        <li>Kom terug op <b>Mijn dag</b>: hier staat je programma met tijd en zaal. Het zwarte blok bovenaan laat zien wat nu bezig is en wat hierna komt.</li>
+      </ol>
+      <button id="go-all" type="button">Naar alle sessies</button>
+    </div>`;
+  d.slots.forEach(([s,e,opts,nAdv],i)=>{
+    const c=chosen(day,i), o=c>=0?opts[c]:null;
     const st=today?(n.m>=mins(e)?"past":n.m>=mins(s)?"live":""):(n.date>d.date?"past":"");
     const k=key(day,i);
-    h+=`<article class="slot ${st}" id="s-${k}">
-      <div class="t"><b>${s}</b><span>${e}</span>${st==="past"?'<span class="done" aria-label="Afgelopen">✓</span>':""}</div>
-      <div class="card">
-        <div class="pick" style="${tc(o[3])}">
-          <div class="meta"><span class="chip room">${esc(o[0])}</span>${opts.length>1?`<span class="chip rank ${c?"alt":""}">${c>=d.slots[i][3]?"eigen keuze":c?`${c+1}e advies`:"1e keus"}</span>`:""}<span class="chip lvl">${T[o[3]][1]} · ${L[o[4]]}</span></div>
+    const altRows=opts.map((a,j)=>j===c||(advice?(j>=nAdv&&!maybe[a[5]]):!maybe[a[5]])?"":`
+          <div class="altrow" style="${tc(a[3])}"><button class="alt" data-k="${k}" data-j="${j}" aria-label="Kies ${esc(a[1])} in ${esc(a[0])}">
+            <span class="sw"></span>
+            <span class="txt"><b>${maybe[a[5]]?"★ ":""}${esc(a[2])}</b><span>${esc(a[0])} · ${esc(a[1])}</span></span>
+            <span class="go">${advice&&j<nAdv?(j+1)+"e · kies":maybe[a[5]]?"reserve · kies":"kies"}</span>
+          </button><button class="star" data-id="${a[5]}" aria-pressed="${!!maybe[a[5]]}" aria-label="Reserve">${maybe[a[5]]?"★":"☆"}</button></div>`).join("");
+    const alts=opts.length>1?`<div class="alts">${altRows?`<div class="h">${advice?"Ook in dit slot":"Je reserves"}</div>`:""}${altRows}<button class="moreall" data-k="${k}" type="button">${o?`Alle ${opts.length} sessies in dit slot bekijken en aanvinken →`:`Kies uit ${opts.length} sessies →`}</button></div>`:"";
+    const pick=o?`<div class="pick" style="${tc(o[3])}">
+          <div class="meta"><span class="chip room">${esc(o[0])}</span>${advice&&opts.length>1?`<span class="chip rank ${c?"alt":""}">${c>=nAdv?"eigen keuze":c?`${c+1}e advies`:"1e keus"}</span>`:""}<span class="chip lvl">${T[o[3]][1]} · ${L[o[4]]}</span></div>
           <h3>${esc(o[2])}</h3>
           <div class="who">${esc(o[1])}</div>
           ${o[6]?`<p class="desc">${esc(o[6])}</p>`:""}
           <div class="tools">
-            <button class="more" data-k="${k}" aria-expanded="${!!open[k]}">${open[k]?"Minder":o[7]?"Waarom deze sessie":"Meer info"}</button>
+            <button class="more" data-k="${k}" aria-expanded="${!!open[k]}">${open[k]?"Minder":advice&&o[7]?"Waarom deze sessie":"Meer info"}</button>
             <button class="more notebtn ${notes[o[5]]?"has":""}" data-k="${k}" aria-expanded="${!!nopen[k]}">✎ ${notes[o[5]]?"Notitie ●":"Notitie"}</button>
+            ${advice?"":`<button class="more unpick" data-k="${k}">✕ Uit mijn dag</button>`}
           </div>
           ${nopen[k]?`<div class="notehead">✎ ${d.name} ${s}–${e} · ${esc(o[0])}<br><b>${esc(o[2])}</b> · ${esc(o[1])}</div><textarea class="note" data-id="${o[5]}" placeholder="Aantekeningen of vragen bij deze sessie" aria-label="Notitie">${esc(notes[o[5]]||"")}</textarea>`:""}
-          ${open[k]?`<div class="info">${o[7]?`<p class="why"><b>Voor jou:</b> ${esc(o[7])}</p>`:""}<a href="${URL0+o[5]}" target="_blank" rel="noopener">Sessiepagina op techorama.nl ↗</a></div>`:""}
-        </div>
-        ${opts.length>1?`<div class="alts"><div class="h">Ook in dit slot</div>${opts.map((a,j)=>j===c||(j>=d.slots[i][3]&&!maybe[a[5]])?"":`
-          <div class="altrow" style="${tc(a[3])}"><button class="alt" data-k="${k}" data-j="${j}" aria-label="Kies ${esc(a[1])} in ${esc(a[0])}">
-            <span class="sw"></span>
-            <span class="txt"><b>${maybe[a[5]]?"★ ":""}${esc(a[2])}</b><span>${esc(a[0])} · ${esc(a[1])}</span></span>
-            <span class="go">${j<d.slots[i][3]?(j+1)+"e · kies":"reserve · kies"}</span>
-          </button><button class="star" data-id="${a[5]}" aria-pressed="${!!maybe[a[5]]}" aria-label="Reserve">${maybe[a[5]]?"★":"☆"}</button></div>`).join("")}<button class="moreall" data-k="${k}" type="button">Alle ${opts.length} sessies in dit slot bekijken en aanvinken →</button></div>`:""}
+          ${open[k]?`<div class="info">${advice&&o[7]?`<p class="why"><b>Voor jou:</b> ${esc(o[7])}</p>`:""}<a href="${URL0+o[5]}" target="_blank" rel="noopener">Sessiepagina op techorama.nl ↗</a></div>`:""}
+        </div>`:`<div class="emptyslot">Nog geen sessie gekozen</div>`;
+    h+=`<article class="slot ${st}" id="s-${k}">
+      <div class="t"><b>${s}</b><span>${e}</span>${st==="past"?'<span class="done" aria-label="Afgelopen">✓</span>':""}</div>
+      <div class="card">
+        ${pick}
+        ${alts}
       </div></article>`;
     const nx=d.slots[i+1];
     if(nx){
-      const gap=mins(nx[0])-mins(e), r2=nx[2][chosen(day,i+1)][0];
+      const gap=mins(nx[0])-mins(e), o2=nx[2][chosen(day,i+1)]||null;
       let txt, walk=false;
       if(gap>=45) txt=`Lunch ${e}–${nx[0]}`;
       else if(gap<=0) txt=`Lunchtalk loopt door in de lunchpauze`;
-      else{ txt=`${gap} min pauze`; if(isJB(o[0])!==isJB(r2)){walk=true;txt+=` · wissel naar ${isJB(r2)?"JB-zaal":"Room 7–13"}, loop op tijd`} }
+      else{ txt=`${gap} min pauze`; if(o&&o2&&isJB(o[0])!==isJB(o2[0])){walk=true;txt+=` · wissel naar ${isJB(o2[0])?"JB-zaal":"Room 7–13"}, loop op tijd`} }
       h+=`<div class="gap ${walk?"walk":""}">${txt}</div>`;
     }
   });
@@ -414,7 +443,16 @@ function renderMine(){
 }
 
 let view=store.get("tr26-view","mine"), fTrack="", fq="";
+function renderFoot(){
+  const a=mode==="advice";
+  $("#kiezen-tekst").innerHTML=a
+    ?'Tik op een alternatief om het je keuze te maken, of ga naar <b>Alle sessies</b> om uit het hele programma aan te vinken. Met ☆ zet je een sessie als reserve; die verschijnt dan in het slot zodat je snel kunt wisselen. Keuzes, reserves en notities worden op deze telefoon onthouden. Het label bij een sessie laat zien of het een advies (1e, 2e of 3e keus) is of je eigen keuze.'
+    :'Ga naar <b>Alle sessies</b> en tik op een sessie om hem in <b>Mijn dag</b> te zetten; tik in Mijn dag op <b>✕ Uit mijn dag</b> om hem weer te verwijderen. Met ☆ zet je een sessie als reserve; die verschijnt dan in het slot zodat je snel kunt wisselen. Keuzes, reserves en notities worden op deze telefoon onthouden.';
+  $("#reset").textContent=a?"Terug naar advies":"Mijn dag leegmaken";
+  $("#to-empty").hidden=!a;
+}
 function renderSlots(){
+  renderFoot();
   document.querySelectorAll(".views button").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===view));
   document.querySelectorAll(".days button").forEach(b=>b.setAttribute("aria-selected",+b.dataset.day===day));
   $("#slots").hidden=view!=="mine"; $("#all").hidden=view!=="all"; $("#filters").hidden=view!=="all";
@@ -439,7 +477,7 @@ function renderAll(){
       h+=`<div class="srow" role="checkbox" tabindex="0" aria-checked="${j===c}" data-k="${k}" data-j="${j}" style="${tc(o[3])}">
         <button class="star" data-id="${o[5]}" aria-pressed="${!!maybe[o[5]]}" aria-label="Reserve">${maybe[o[5]]?"★":"☆"}</button><span class="box">✓</span>
         <span class="txt"><b>${esc(o[2])}</b><div class="w">${esc(o[1])}</div>${o[6]?`<div class="d">${esc(o[6])}</div>`:""}
-          <div class="meta"><span class="chip room">${esc(o[0])}</span><span class="chip lvl">${T[o[3]][1]} · ${L[o[4]]}</span>${j<nAdv?`<span class="chip rank ${j?"alt":""}">${j+1}e advies</span>`:""}</div>
+          <div class="meta"><span class="chip room">${esc(o[0])}</span><span class="chip lvl">${T[o[3]][1]} · ${L[o[4]]}</span>${mode==="advice"&&j<nAdv?`<span class="chip rank ${j?"alt":""}">${j+1}e advies</span>`:""}</div>
           <a href="${URL0+o[5]}" target="_blank" rel="noopener">Sessiepagina ↗</a></span></div>`;
     });
     h+="</section>";
@@ -450,12 +488,16 @@ function renderAll(){
 function renderNow(){
   if(typeof updateRemind==="function") updateRemind();
   const n=amsNow(), first=DAYS[0].date, last=DAYS[1].date;
+  const has=(d,i)=>chosen(d,i)>=0;
+  const firstSel=d=>DAYS[d].slots.findIndex((_,i)=>has(d,i));
   const line=(label,d,i,dot)=>{const[s,e,opts]=DAYS[d].slots[i],o=opts[chosen(d,i)];
     return `<div class="lbl">${dot?'<span class="dot"></span>':""}${label}</div><div class="big">${esc(o[2])}</div><div class="row"><span class="room">${esc(o[0])}</span><span class="sub">${s}–${e} · ${esc(o[1])}</span></div>`};
+  const none=`<div class="lbl">Je dag is nog leeg</div><div class="big">Kies je sessies bij Alle sessies</div>`;
   let h;
   if(n.date<first){
     const days=Math.round((Date.parse(first)-Date.parse(n.date))/864e5);
-    h=`<div class="lbl">Nog ${days} ${days===1?"dag":"dagen"}</div><div class="big">Dinsdag 27 oktober, registratie en ontbijt vanaf 07:30</div><hr>${line("Eerste sessie",0,0)}`;
+    const f0=firstSel(0), f1=firstSel(1);
+    h=`<div class="lbl">Nog ${days} ${days===1?"dag":"dagen"}</div><div class="big">Dinsdag 27 oktober, registratie en ontbijt vanaf 07:30</div><hr>${f0>=0?line("Eerste sessie",0,f0):f1>=0?line("Eerste sessie",1,f1):none}`;
   }else if(n.date>last){
     h=`<div class="lbl">Afgelopen</div><div class="big">Techorama 2026 zit erop. Je keuzes blijven hier staan als naslag.</div>`;
   }else{
@@ -463,14 +505,22 @@ function renderNow(){
     if(d<0){h=`<div class="lbl">Tussen de dagen</div>`}
     else{
       const sl=DAYS[d].slots;
-      const cur=sl.findIndex(([s,e])=>n.m>=mins(s)&&n.m<mins(e));
-      const nxt=sl.findIndex(([s])=>mins(s)>n.m);
+      const cur=sl.findIndex(([s,e],i)=>n.m>=mins(s)&&n.m<mins(e)&&has(d,i));
+      const inSlot=sl.findIndex(([s,e])=>n.m>=mins(s)&&n.m<mins(e));
+      const nxt=sl.findIndex(([s],i)=>mins(s)>n.m&&has(d,i));
       h="";
-      if(cur>=0) h+=line("Nu bezig",d,cur,true);
-      else if(n.m<mins(sl[0][0])) h+=`<div class="lbl">Goedemorgen</div><div class="big">Registratie en ontbijt vanaf 07:30</div>`;
-      else if(nxt>=0) h+=`<div class="lbl">Pauze</div>`;
-      if(nxt>=0){ if(h) h+="<hr>"; h+=line(`Hierna om ${sl[nxt][0]}`,d,nxt); }
-      else if(cur<0){ h+=d===0?`<div class="lbl">Klaar voor vandaag</div><hr>${line("Morgen als eerste",1,0)}`:`<div class="lbl">Klaar</div><div class="big">Dat was Techorama 2026.</div>`; }
+      if(firstSel(d)<0) h=none;
+      else{
+        if(cur>=0) h+=line("Nu bezig",d,cur,true);
+        else if(n.m<mins(sl[0][0])) h+=`<div class="lbl">Goedemorgen</div><div class="big">Registratie en ontbijt vanaf 07:30</div>`;
+        else if(inSlot>=0) h+=`<div class="lbl">Geen sessie gekozen in dit slot</div>`;
+        else if(nxt>=0) h+=`<div class="lbl">Pauze</div>`;
+        if(nxt>=0){ if(h) h+="<hr>"; h+=line(`Hierna om ${sl[nxt][0]}`,d,nxt); }
+        else if(cur<0&&inSlot<0){
+          const f1=d===0?firstSel(1):-1;
+          h+=d===0?`<div class="lbl">Klaar voor vandaag</div>${f1>=0?"<hr>"+line("Morgen als eerste",1,f1):""}`:`<div class="lbl">Klaar</div><div class="big">Dat was Techorama 2026.</div>`;
+        }
+      }
     }
   }
   $("#now").innerHTML=h+(DAYS.some(d=>d.date===n.date)?'<div class="jump">Tik om naar het huidige tijdslot te springen ↓</div>':"");
@@ -479,10 +529,12 @@ function renderNow(){
 function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,1800)}
 
 function pickRow(row){
-  const k=row.dataset.k, j=+row.dataset.j, y=window.scrollY;
-  if(picks[k]===j||(!picks[k]&&j===0)) return;
-  picks[k]=j; if(!j) delete picks[k];
-  store.set("tr26-picks",picks); renderAll(); renderNow(); window.scrollTo({top:y}); toast("Aangevinkt");
+  const k=row.dataset.k, j=+row.dataset.j, y=window.scrollY, [d,i]=k.split("-").map(Number);
+  if(chosen(d,i)===j){
+    if(mode==="advice") return;                      // in de adviesmodus is altijd één sessie gekozen
+    delete picks[k]; store.set("tr26-picks",picks); toast("Uit je dag gehaald");
+  }else{ setPick(k,j); toast("Aangevinkt"); }
+  renderAll(); renderNow(); window.scrollTo({top:y});
 }
 document.addEventListener("keydown",ev=>{const r=ev.target.closest&&ev.target.closest(".srow");if(r&&(ev.key===" "||ev.key==="Enter")){ev.preventDefault();pickRow(r)}});
 $("#q").addEventListener("input",ev=>{fq=ev.target.value;renderAll()});
@@ -508,10 +560,16 @@ document.addEventListener("click",ev=>{
   if(ma){view="all";fTrack="";fq="";$("#q").value="";store.set("tr26-view",view);renderSlots();const el=document.getElementById("a-"+ma.dataset.k);el&&el.scrollIntoView({block:"start"});return}
   const tab=ev.target.closest(".days button");
   if(tab){day=+tab.dataset.day;store.set("tr26-day",day);renderSlots();window.scrollTo({top:0});return}
-  const more=ev.target.closest(".more:not(.notebtn)");
+  const more=ev.target.closest(".more:not(.notebtn):not(.unpick)");
   if(more){open[more.dataset.k]=!open[more.dataset.k];renderSlots();return}
   const alt=ev.target.closest(".alt");
-  if(alt){picks[alt.dataset.k]=+alt.dataset.j;if(!picks[alt.dataset.k])delete picks[alt.dataset.k];store.set("tr26-picks",picks);renderSlots();renderNow();toast("Keuze aangepast");return}
+  if(alt){setPick(alt.dataset.k,+alt.dataset.j);renderSlots();renderNow();toast("Keuze aangepast");return}
+  const up=ev.target.closest(".unpick");
+  if(up){delete picks[up.dataset.k];store.set("tr26-picks",picks);const y=scrollY;renderSlots();renderNow();window.scrollTo({top:y});toast("Uit je dag gehaald");return}
+  if(ev.target.id==="go-all"){view="all";store.set("tr26-view",view);renderSlots();window.scrollTo({top:0});return}
+  if(ev.target.id==="to-empty"){
+    if(confirm("Mijn dag leegmaken en zonder het advies van de maker verder?\n\nJe kiest daarna zelf uit alle sessies. Reserves en notities blijven staan.")){mode="empty";store.set("tr26-mode",mode);picks={};store.set("tr26-picks",picks);renderSlots();renderNow();toast("Mijn dag is leeg")}
+    return}
   if(ev.target.id==="ics"){exportIcs();return}
   if(ev.target.id==="notes-share"){shareNotes();return}
   if(ev.target.id==="rm-do"){saveBackup();return}
@@ -521,7 +579,9 @@ document.addEventListener("click",ev=>{
   if(ev.target.id==="bk-link"){shareLink();return}
   const th=ev.target.closest("#themes button");
   if(th){setTheme(th.dataset.th);return}
-  if(ev.target.id==="reset"){picks={};store.set("tr26-picks",picks);renderSlots();renderNow();toast("Terug naar advies")}
+  if(ev.target.id==="reset"){
+    if(mode==="empty"&&Object.keys(picks).length&&!confirm("Alle gekozen sessies uit Mijn dag halen? Reserves en notities blijven staan.")) return;
+    picks={};store.set("tr26-picks",picks);renderSlots();renderNow();toast(mode==="advice"?"Terug naar advies":"Mijn dag is leeg")}
 });
 
 function setTheme(t){
@@ -542,7 +602,8 @@ function buildIcs(){
   const stamp=new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+/,"");
   const rows=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Techorama 2026 app//NL","CALSCALE:GREGORIAN","METHOD:PUBLISH","X-WR-CALNAME:Techorama 2026"];
   DAYS.forEach((d,di)=>d.slots.forEach(([s,e,opts],i)=>{
-    const o=opts[chosen(di,i)];
+    const c=chosen(di,i); if(c<0) return;             // geen sessie gekozen: geen afspraak
+    const o=opts[c];
     const desc=[o[1]+" · "+T[o[3]][1], o[6], notes[o[5]]?"Notitie: "+notes[o[5]]:"", URL0+o[5]].filter(Boolean).join("\n");
     rows.push("BEGIN:VEVENT","UID:"+o[5]+"-"+di+"-"+i+"@techorama26.app","DTSTAMP:"+stamp,"DTSTART:"+utc(d.date,s),"DTEND:"+utc(d.date,e),
       "SUMMARY:"+esc2(o[2]+" ("+o[0]+")"),"LOCATION:"+esc2(o[0]),"DESCRIPTION:"+esc2(desc),"URL:"+URL0+o[5],
@@ -552,7 +613,9 @@ function buildIcs(){
   return rows.map(fold).join("\r\n")+"\r\n";
 }
 function exportIcs(){
-  const file=new File([buildIcs()],"techorama-2026.ics",{type:"text/calendar"});
+  const ics=buildIcs();
+  if(!ics.includes("BEGIN:VEVENT")){toast("Je hebt nog geen sessies gekozen");return}
+  const file=new File([ics],"techorama-2026.ics",{type:"text/calendar"});
   const dl=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download="techorama-2026.ics";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast("techorama-2026.ics opgeslagen; open het bestand om te importeren")};
   if(navigator.canShare&&navigator.canShare({files:[file]})) navigator.share({files:[file],title:"Techorama 2026"}).catch(e=>{if(e&&e.name!=="AbortError")dl()});
   else dl();
@@ -580,16 +643,19 @@ function shareNotes(){
 }
 
 // ---- Back-up en overzetten: keuzes, reserves en notities als bestand of als link
-function snapshot(){return {app:"techorama26",v:1,picks,maybe,notes}}
+function snapshot(){return {app:"techorama26",v:2,mode,picks,maybe,notes}}
 function cleanSnapshot(o){
   if(!o||o.app!=="techorama26"||typeof o.picks!=="object"||typeof o.maybe!=="object"||typeof o.notes!=="object") return null;
   const p={},m={},n={};
-  for(const[k,v] of Object.entries(o.picks||{})) if(/^\d-\d+$/.test(k)&&Number.isInteger(v)&&v>0) p[k]=v;
+  for(const[k,v] of Object.entries(o.picks||{})) if(/^\d-\d+$/.test(k)&&Number.isInteger(v)&&v>=0) p[k]=v;
   for(const[k,v] of Object.entries(o.maybe||{})) if(/^\d+$/.test(k)&&v) m[k]=true;
   for(const[k,v] of Object.entries(o.notes||{})) if(/^\d+$/.test(k)&&typeof v==="string"&&v.trim()) n[k]=v.slice(0,5000);
-  return {picks:p,maybe:m,notes:n};
+  const md=o.mode==="empty"?"empty":"advice";        // oudere back-ups hebben geen modus en horen bij de adviesmodus
+  if(md==="advice") for(const k of Object.keys(p)) if(!p[k]) delete p[k];
+  return {mode:md,picks:p,maybe:m,notes:n};
 }
 function applySnapshot(s){
+  mode=s.mode;store.set("tr26-mode",mode);
   picks=s.picks;maybe=s.maybe;notes=s.notes;
   store.set("tr26-picks",picks);store.set("tr26-maybe",maybe);store.set("tr26-notes",notes);
   renderSlots();renderNow();

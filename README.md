@@ -17,6 +17,7 @@ Open de app daarna één keer met internet. Vanaf dan werkt hij ook zonder wifi 
 
 ## Gebruik
 
+- **Je eerste keer:** **Mijn dag** is dan leeg en de app legt in drie stappen uit hoe je hem vult. Tik op *Alle sessies*, zoek een sessie en tik erop om hem aan te vinken (nog eens tikken haalt hem weg). Met ☆ zet je een reserve. Daarna staat je programma in *Mijn dag*.
 - **Mijn dag:** jouw programma per dag, met de zaal, plus "Nu" en "Hierna" bovenaan. De app waarschuwt als je tussen twee sessies maar 15 minuten hebt en van gebouwdeel moet wisselen (JB-zalen ↔ Room 7–13).
 - **Alle sessies:** het hele programma. Tik op een sessie om die aan te vinken als jouw keuze. Je kunt zoeken op titel of spreker en filteren op track.
 - **Omschrijving:** tik op *Waarom deze sessie* voor meer info of de link naar de officiële sessiepagina.
@@ -51,6 +52,8 @@ Je ziet dan onder andere:
 Als je alleen het stuk na de `#` in de adresbalk aanpast, springt de app direct mee. Haal `#demo` weer weg om terug te gaan naar de echte tijd.
 
 ## Goed om te weten
+
+- **Nieuw of bestaand:** wie de app voor het eerst opent, begint met een lege dag. Wie de app al had, houdt de weergave met het advies van de maker en al zijn keuzes, reserves en notities; een update overschrijft niets. Die groep kan onderaan met *Begin met een lege dag* zelf overstappen (reserves en notities blijven dan staan).
 
 - Voor sessies zonder eigen omschrijving staat alleen een link naar techorama.nl.
 - Je keuzes worden alleen op je eigen telefoon bewaard.
