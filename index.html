@@ -106,6 +106,10 @@ button{font:inherit;color:inherit}
 .slot .t b{display:block;font-size:.95rem}
 .slot .t span{font-size:.72rem;color:var(--muted)}
 .slot.past{opacity:.5}
+.slot .done{display:block;color:var(--now);font-weight:800;font-size:1rem;margin-top:2px}
+.now{cursor:pointer}
+.now .jump{font-family:var(--f-mono);font-size:.68rem;opacity:.6;letter-spacing:.04em}
+.slot.past .done{color:var(--now)}
 .slot.live .t b{color:var(--now)}
 .card{min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 .slot.live .card{border-color:var(--now);box-shadow:0 0 0 2px color-mix(in srgb,var(--now) 30%,transparent)}
@@ -303,7 +307,7 @@ function renderMine(){
     const st=today?(n.m>=mins(e)?"past":n.m>=mins(s)?"live":""):(n.date>d.date?"past":"");
     const k=key(day,i);
     h+=`<article class="slot ${st}" id="s-${k}">
-      <div class="t"><b>${s}</b><span>${e}</span></div>
+      <div class="t"><b>${s}</b><span>${e}</span>${st==="past"?'<span class="done" aria-label="Afgelopen">✓</span>':""}</div>
       <div class="card">
         <div class="pick" style="${tc(o[3])}">
           <div class="meta"><span class="chip room">${esc(o[0])}</span>${opts.length>1?`<span class="chip rank ${c?"alt":""}">${c>=d.slots[i][3]?"eigen keuze":c?`${c+1}e advies`:"1e keus"}</span>`:""}<span class="chip lvl">${T[o[3]][1]} · ${L[o[4]]}</span></div>
@@ -391,7 +395,7 @@ function renderNow(){
       else if(cur<0){ h+=d===0?`<div class="lbl">Klaar voor vandaag</div><hr>${line("Morgen als eerste",1,0)}`:`<div class="lbl">Klaar</div><div class="big">Dat was Techorama 2026.</div>`; }
     }
   }
-  $("#now").innerHTML=h;
+  $("#now").innerHTML=h+(DAYS.some(d=>d.date===n.date)?'<div class="jump">Tik om naar het huidige tijdslot te springen ↓</div>':"");
 }
 
 function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,1800)}
@@ -405,6 +409,7 @@ function pickRow(row){
 document.addEventListener("keydown",ev=>{const r=ev.target.closest&&ev.target.closest(".srow");if(r&&(ev.key===" "||ev.key==="Enter")){ev.preventDefault();pickRow(r)}});
 $("#q").addEventListener("input",ev=>{fq=ev.target.value;renderAll()});
 document.addEventListener("click",ev=>{
+  if(ev.target.closest("#now")){jumpNow();return}
   const vw=ev.target.closest(".views button");
   if(vw){view=vw.dataset.view;store.set("tr26-view",view);renderSlots();window.scrollTo({top:0});return}
   const fc=ev.target.closest(".fchip");
@@ -423,9 +428,16 @@ document.addEventListener("click",ev=>{
 });
 
 renderSlots();renderNow();
-(()=>{const n=amsNow();if(view==='mine'&&DAYS[day].date===n.date){const el=document.querySelector(".slot.live")||document.querySelector(".slot:not(.past)");el&&el.scrollIntoView({block:"center"})}})();
+function jumpNow(){
+  const d=DAYS.findIndex(x=>x.date===amsNow().date); if(d<0) return;
+  day=d; view="mine"; store.set("tr26-view",view); renderSlots();
+  const el=document.querySelector(".slot.live")||document.querySelector(".slot:not(.past)");
+  el&&el.scrollIntoView({block:"center"});
+}
+if(view==="mine") jumpNow();
 setInterval(()=>{renderNow();renderSlots()},60000);
-document.addEventListener("visibilitychange",()=>{if(!document.hidden){renderNow();renderSlots()}});
+let hiddenAt=0;
+document.addEventListener("visibilitychange",()=>{if(document.hidden){hiddenAt=Date.now();return}renderNow();renderSlots();if(view==="mine"&&hiddenAt&&Date.now()-hiddenAt>10*60*1000)jumpNow()});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
 </script>
 
