@@ -23,6 +23,7 @@ Open de app daarna één keer met internet. Vanaf dan werkt hij ook zonder wifi 
 - **Reserve (☆):** tik op het sterretje bij een sessie om die als reserve te markeren. Reserves staan onder "Ook in dit slot", zodat je snel kunt wisselen. In "Alle sessies" filter je ze met *★ Reserve*.
 - **Notities (✎):** typ aantekeningen of vragen bij de sessie die je volgt. Ze worden automatisch bewaard.
 - **Naar je agenda:** onderaan exporteer je je gekozen sessies als `.ics`-bestand voor Outlook of Google Agenda, met zaal, notities en een herinnering 10 minuten van tevoren. Op Android opent het deelmenu; kies je agenda-app of sla het bestand op en open het.
+- **Back-up en overzetten:** onderaan bewaar je je eigen keuzes, reserves en notities als bestand (*Back-up opslaan*) en zet je ze weer terug (*Back-up terugzetten*). Met *Overzet-link delen* stuur je ze als link naar jezelf, bijvoorbeeld via Teams of mail; openen op een andere telefoon zet alles daar klaar. De link bevat je notities, deel hem dus alleen met jezelf. Op iPhone heeft de app op het beginscherm eigen opslag: open de link daar via de app, of zet een back-upbestand terug.
 - **Weergave:** onderaan kies je automatisch, licht of donker.
 - **Versie:** onderaan staat het versienummer en de knop *Controleer op update*.
 - **Terug naar advies:** onderaan zet je alle keuzes terug naar het beginadvies. Reserves en notities blijven staan.

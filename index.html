@@ -216,6 +216,16 @@ button{font:inherit;color:inherit}
       <div style="margin-top:8px"><button id="ics" type="button">Exporteer mijn programma (.ics)</button></div>
     </div>
     <div class="box">
+      <h4>Back-up en overzetten</h4>
+      Bewaar je keuzes, reserves en notities, of zet ze over naar een andere telefoon.
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+        <button id="bk-save" type="button">Back-up opslaan</button>
+        <button id="bk-load" type="button">Back-up terugzetten</button>
+        <button id="bk-link" type="button">Overzet-link delen</button>
+      </div>
+      <input type="file" id="bk-file" accept=".json,application/json" hidden>
+    </div>
+    <div class="box">
       <h4>Weergave</h4>
       <div style="display:flex;gap:6px;flex-wrap:wrap" id="themes">
         <button type="button" data-th="auto">Automatisch</button>
@@ -241,7 +251,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v10";
+const APP_VERSION="v11";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -486,6 +496,9 @@ document.addEventListener("click",ev=>{
   const alt=ev.target.closest(".alt");
   if(alt){picks[alt.dataset.k]=+alt.dataset.j;if(!picks[alt.dataset.k])delete picks[alt.dataset.k];store.set("tr26-picks",picks);renderSlots();renderNow();toast("Keuze aangepast");return}
   if(ev.target.id==="ics"){exportIcs();return}
+  if(ev.target.id==="bk-save"){saveBackup();return}
+  if(ev.target.id==="bk-load"){$("#bk-file").click();return}
+  if(ev.target.id==="bk-link"){shareLink();return}
   const th=ev.target.closest("#themes button");
   if(th){setTheme(th.dataset.th);return}
   if(ev.target.id==="reset"){picks={};store.set("tr26-picks",picks);renderSlots();renderNow();toast("Terug naar advies")}
@@ -525,6 +538,57 @@ function exportIcs(){
   else dl();
 }
 
+// ---- Back-up en overzetten: keuzes, reserves en notities als bestand of als link
+function snapshot(){return {app:"techorama26",v:1,picks,maybe,notes}}
+function cleanSnapshot(o){
+  if(!o||o.app!=="techorama26"||typeof o.picks!=="object"||typeof o.maybe!=="object"||typeof o.notes!=="object") return null;
+  const p={},m={},n={};
+  for(const[k,v] of Object.entries(o.picks||{})) if(/^\d-\d+$/.test(k)&&Number.isInteger(v)&&v>0) p[k]=v;
+  for(const[k,v] of Object.entries(o.maybe||{})) if(/^\d+$/.test(k)&&v) m[k]=true;
+  for(const[k,v] of Object.entries(o.notes||{})) if(/^\d+$/.test(k)&&typeof v==="string"&&v.trim()) n[k]=v.slice(0,5000);
+  return {picks:p,maybe:m,notes:n};
+}
+function applySnapshot(s){
+  picks=s.picks;maybe=s.maybe;notes=s.notes;
+  store.set("tr26-picks",picks);store.set("tr26-maybe",maybe);store.set("tr26-notes",notes);
+  renderSlots();renderNow();
+}
+function describe(s){
+  const a=Object.keys(s.picks).length,b=Object.keys(s.maybe).length,c=Object.keys(s.notes).length;
+  return `${a} ${a===1?"eigen keuze":"eigen keuzes"}, ${b} ${b===1?"reserve":"reserves"} en ${c} ${c===1?"notitie":"notities"}`;
+}
+function askRestore(s,bron){
+  if(confirm(`Uit ${bron} terugzetten: ${describe(s)}?\n\nDit vervangt wat nu op dit toestel staat.`)){applySnapshot(s);toast("Teruggezet")}
+}
+function saveBackup(){
+  const file=new File([JSON.stringify(snapshot(),null,1)],"techorama-backup.json",{type:"application/json"});
+  const dl=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(file);a.download="techorama-backup.json";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast("Back-up opgeslagen")};
+  if(navigator.canShare&&navigator.canShare({files:[file]})) navigator.share({files:[file],title:"Techorama back-up"}).catch(e=>{if(e&&e.name!=="AbortError")dl()});
+  else dl();
+}
+$("#bk-file").addEventListener("change",ev=>{
+  const f=ev.target.files[0]; ev.target.value=""; if(!f) return;
+  f.text().then(t=>{const s=cleanSnapshot(JSON.parse(t)); if(!s) throw 0; askRestore(s,"het bestand")}).catch(()=>toast("Dit is geen geldig back-upbestand"));
+});
+const b64=s=>btoa(String.fromCharCode(...new TextEncoder().encode(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const unb64=s=>new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0)));
+function shareLink(){
+  const url=location.origin+location.pathname+"#restore="+b64(JSON.stringify(snapshot()));
+  const done=()=>toast("Link gekopieerd. Open hem op de andere telefoon");
+  if(navigator.share) navigator.share({title:"Techorama overzetten",url}).catch(e=>{if(e&&e.name!=="AbortError")copy()});
+  else copy();
+  function copy(){ (navigator.clipboard?navigator.clipboard.writeText(url).then(done):Promise.reject()).catch(()=>prompt("Kopieer deze link:",url)) }
+}
+function restoreFromHash(){
+  const m=location.hash.match(/^#restore=([A-Za-z0-9_-]+)$/); if(!m) return false;
+  history.replaceState(null,"",location.pathname+location.search);
+  try{const s=cleanSnapshot(JSON.parse(unb64(m[1]))); if(!s) throw 0; askRestore(s,"de link")}catch(e){toast("Deze overzet-link is ongeldig")}
+  return true;
+}
+// Vraag de browser om de opgeslagen gegevens niet automatisch op te ruimen
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+restoreFromHash();
+
 renderSlots();renderNow();
 $("#ver").textContent="Techorama-app "+APP_VERSION;
 function jumpNow(){
@@ -536,7 +600,7 @@ function jumpNow(){
 if(view==="mine") jumpNow();
 const typing=()=>document.activeElement&&document.activeElement.tagName==="TEXTAREA";
 setInterval(()=>{renderNow();if(!typing())renderSlots()},60000);
-window.addEventListener("hashchange",()=>{day=Math.max(0,DAYS.findIndex(d=>d.date===amsNow().date));renderNow();renderSlots();if(view==="mine")jumpNow()});
+window.addEventListener("hashchange",()=>{if(restoreFromHash())return;day=Math.max(0,DAYS.findIndex(d=>d.date===amsNow().date));renderNow();renderSlots();if(view==="mine")jumpNow()});
 let hiddenAt=0;
 document.addEventListener("visibilitychange",()=>{if(document.hidden){hiddenAt=Date.now();return}renderNow();if(!typing())renderSlots();if(view==="mine"&&hiddenAt&&Date.now()-hiddenAt>10*60*1000)jumpNow()});
 if("serviceWorker" in navigator){
