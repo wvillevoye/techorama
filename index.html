@@ -198,6 +198,10 @@ button{font:inherit;color:inherit}
       <div style="margin-top:8px"><button id="reset" type="button">Terug naar advies</button></div>
     </div>
     <div class="box">
+      <h4>Versie</h4>
+      <span id="ver"></span> <button id="chk" type="button">Controleer op update</button>
+    </div>
+    <div class="box">
       <h4>Installeren</h4>
       <b>Android (Chrome):</b> tik op ⋮ en kies <b>App installeren</b> (of <b>Toevoegen aan startscherm</b>).<br><b>iPhone (Safari):</b> tik op de deelknop en kies <b>Zet op beginscherm</b>.<br>Open de app daarna één keer met internet; dan werkt hij ook offline.
     </div>
@@ -210,6 +214,8 @@ button{font:inherit;color:inherit}
 <div class="update" id="update" role="alert" hidden><span>Nieuwe versie beschikbaar</span><button id="reload" type="button">Vernieuwen</button></div>
 
 <script>
+// Houd gelijk aan VERSION in sw.js
+const APP_VERSION="v9";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -440,6 +446,7 @@ document.addEventListener("click",ev=>{
 });
 
 renderSlots();renderNow();
+$("#ver").textContent="Techorama-app "+APP_VERSION;
 function jumpNow(){
   const d=DAYS.findIndex(x=>x.date===amsNow().date); if(d<0) return;
   day=d; view="mine"; store.set("tr26-view",view); renderSlots();
@@ -456,7 +463,14 @@ if("serviceWorker" in navigator){
   const had=!!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener("controllerchange",()=>{ if(had) $("#update").hidden=false; });
   $("#reload").addEventListener("click",()=>location.reload());
+  let swReg=null;
+  $("#chk").addEventListener("click",()=>{
+    if(!swReg){toast("Update-controle niet beschikbaar");return}
+    toast("Controleren…");
+    swReg.update().then(()=>{ if(swReg.installing||swReg.waiting) toast("Nieuwe versie wordt opgehaald…"); else toast("Je hebt de nieuwste versie"); }).catch(()=>toast("Geen internet, probeer het later"));
+  });
   window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").then(reg=>{
+    swReg=reg;
     const check=()=>reg.update().catch(()=>{});
     document.addEventListener("visibilitychange",()=>{ if(!document.hidden) check(); });
     setInterval(check,30*60*1000);
