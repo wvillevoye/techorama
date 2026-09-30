@@ -1,5 +1,5 @@
 // Verhoog VERSION bij elke wijziging van index.html, zodat telefoons de nieuwe versie ophalen.
-const VERSION = "v3";
+const VERSION = "v4";
 const CACHE = "techorama26-" + VERSION;
 const FONTS = "techorama26-fonts";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest",
