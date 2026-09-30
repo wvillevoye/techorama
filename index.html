@@ -125,6 +125,7 @@ button{font:inherit;color:inherit}
 .pick h3{font-family:var(--f-display);font-weight:600;font-size:1.05rem;line-height:1.25;margin:0;text-wrap:balance}
 .pick .who{font-size:.9rem;color:var(--muted);margin-top:2px}
 .more{margin-top:8px;border:0;background:none;padding:4px 0;color:var(--tc);font-weight:700;font-size:.85rem;cursor:pointer}
+.desc{margin:8px 0 0;font-size:.92rem;line-height:1.4}
 .info{margin-top:6px;font-size:.92rem;display:grid;gap:6px}
 .info p{margin:0}
 .info .why{font-style:italic}
@@ -320,8 +321,9 @@ function renderMine(){
           <div class="meta"><span class="chip room">${esc(o[0])}</span>${opts.length>1?`<span class="chip rank ${c?"alt":""}">${c>=d.slots[i][3]?"eigen keuze":c?`${c+1}e advies`:"1e keus"}</span>`:""}<span class="chip lvl">${T[o[3]][1]} · ${L[o[4]]}</span></div>
           <h3>${esc(o[2])}</h3>
           <div class="who">${esc(o[1])}</div>
-          <button class="more" data-k="${k}" aria-expanded="${!!open[k]}">${open[k]?"Minder":"Waarom deze sessie"}</button>
-          ${open[k]?`<div class="info">${o[6]?`<p>${esc(o[6])}</p>${o[7]?`<p class="why"><b>Voor jou:</b> ${esc(o[7])}</p>`:""}`:""}<a href="${URL0+o[5]}" target="_blank" rel="noopener">Sessiepagina op techorama.nl ↗</a></div>`:""}
+          ${o[6]?`<p class="desc">${esc(o[6])}</p>`:""}
+          <button class="more" data-k="${k}" aria-expanded="${!!open[k]}">${open[k]?"Minder":o[7]?"Waarom deze sessie":"Meer info"}</button>
+          ${open[k]?`<div class="info">${o[7]?`<p class="why"><b>Voor jou:</b> ${esc(o[7])}</p>`:""}<a href="${URL0+o[5]}" target="_blank" rel="noopener">Sessiepagina op techorama.nl ↗</a></div>`:""}
         </div>
         ${opts.length>1?`<div class="alts"><div class="h">Ook in dit slot</div>${opts.map((a,j)=>j===c||j>=d.slots[i][3]?"":`
           <button class="alt" data-k="${k}" data-j="${j}" style="${tc(a[3])}" aria-label="Kies ${esc(a[1])} in ${esc(a[0])}">
