@@ -1,0 +1,13 @@
+# Publiceert de app via GitLab Pages bij elke push naar de standaardbranch.
+pages:
+  image: alpine:latest
+  stage: deploy
+  script:
+    - mkdir -p public
+    - cp index.html manifest.webmanifest sw.js public/
+    - cp -r icons public/
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

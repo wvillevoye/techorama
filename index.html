@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0D1020">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+<title>Techorama 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one-column pocket timeline — sticky day switcher, a live "nu/hierna" card, then one card per tijdslot with the gekozen sessie and tappable alternatieven. */
+:root{
+  --bg:#F3F4F8; --surface:#FFFFFF; --sunk:#E9EBF2; --ink:#141A2E; --muted:#5C6378; --line:#DDE1EB;
+  --accent:#D9901A; --accent-ink:#1A1405; --now:#0E8A5F; --warn:#B4531C;
+  --ai:#6D3FE0; --dev:#1F5FD6; --sec:#C8323A; --ops:#D2601A; --key:#4A5568;
+  --ai-t:#F1ECFE; --dev-t:#EAF1FE; --sec-t:#FDECEC; --ops-t:#FEF1E7; --key-t:#EEF1F5;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", Roboto, system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "Roboto Mono", monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1020; --surface:#161A2D; --sunk:#1E2338; --ink:#E8EAF4; --muted:#9CA2BA; --line:#2A3050;
+  --accent:#F0AE3C; --accent-ink:#1A1405; --now:#3CCB94; --warn:#F08A4B;
+  --ai:#A98BFF; --dev:#6FA0FF; --sec:#FF7B82; --ops:#FF9E5E; --key:#A7B1C4;
+  --ai-t:#231C43; --dev-t:#16254A; --sec-t:#3A1A22; --ops-t:#3A2416; --key-t:#20263A;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0D1020; --surface:#161A2D; --sunk:#1E2338; --ink:#E8EAF4; --muted:#9CA2BA; --line:#2A3050;
+  --accent:#F0AE3C; --accent-ink:#1A1405; --now:#3CCB94; --warn:#F08A4B;
+  --ai:#A98BFF; --dev:#6FA0FF; --sec:#FF7B82; --ops:#FF9E5E; --key:#A7B1C4;
+  --ai-t:#231C43; --dev-t:#16254A; --sec-t:#3A1A22; --ops-t:#3A2416; --key-t:#20263A;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+.wrap{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:0 40px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:14px 10px;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.brand h1{font-family:var(--f-display);font-weight:800;font-size:1.45rem;letter-spacing:-.01em;margin:0;line-height:1.1}
+.brand .where{font-family:var(--f-mono);font-size:.72rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.days{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:12px;background:var(--sunk);padding:4px;border-radius:12px}
+.days button{border:0;background:transparent;border-radius:9px;padding:9px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px}
+.days button b{font-family:var(--f-display);font-weight:600;font-size:1rem}
+.days button span{font-size:.75rem;color:var(--muted)}
+.days button[aria-selected="true"]{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+
+/* now card */
+.now{margin-top:14px;background:var(--ink);color:var(--bg);border-radius:var(--r);padding:14px 16px;display:grid;gap:8px}
+.now .lbl{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;opacity:.75;display:flex;align-items:center;gap:6px}
+.now .dot{width:8px;height:8px;border-radius:50%;background:var(--now);box-shadow:0 0 0 3px color-mix(in srgb,var(--now) 35%,transparent)}
+.now .big{font-family:var(--f-display);font-weight:600;font-size:1.15rem;line-height:1.25;text-wrap:balance}
+.now .room{font-family:var(--f-mono);font-weight:700;color:var(--accent)}
+.now .sub{font-size:.9rem;opacity:.85}
+.now .row{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.now hr{border:0;border-top:1px solid color-mix(in srgb,var(--bg) 22%,transparent);margin:2px 0;width:100%}
+
+/* legend */
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;margin:14px 2px 4px;font-size:.78rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* slots */
+.slots{display:grid;gap:0;margin-top:8px}
+.slot{display:grid;grid-template-columns:52px 1fr;gap:10px;padding-block:6px}
+.slot .t{font-family:var(--f-mono);font-variant-numeric:tabular-nums;padding-top:12px;text-align:right}
+.slot .t b{display:block;font-size:.95rem}
+.slot .t span{font-size:.72rem;color:var(--muted)}
+.slot.past{opacity:.5}
+.slot.live .t b{color:var(--now)}
+.card{min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.slot.live .card{border-color:var(--now);box-shadow:0 0 0 2px color-mix(in srgb,var(--now) 30%,transparent)}
+.pick{padding:12px 14px 12px 16px;position:relative;background:var(--tint)}
+.pick::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--tc)}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px}
+.chip{font-family:var(--f-mono);font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--surface);border:1px solid var(--line);white-space:nowrap}
+.chip.room{color:var(--tc);border-color:color-mix(in srgb,var(--tc) 45%,var(--line))}
+.chip.rank{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.chip.rank.alt{background:var(--sunk);color:var(--muted)}
+.chip.lvl{font-weight:500;color:var(--muted)}
+.pick h3{font-family:var(--f-display);font-weight:600;font-size:1.05rem;line-height:1.25;margin:0;text-wrap:balance}
+.pick .who{font-size:.9rem;color:var(--muted);margin-top:2px}
+.more{margin-top:8px;border:0;background:none;padding:4px 0;color:var(--tc);font-weight:700;font-size:.85rem;cursor:pointer}
+.info{margin-top:6px;font-size:.92rem;display:grid;gap:6px}
+.info p{margin:0}
+.info .why{font-style:italic}
+.info .why b{font-style:normal}
+.info a{color:var(--tc);font-weight:700;font-size:.85rem}
+.alts{border-top:1px solid var(--line)}
+.alts .h{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:8px 14px 2px;font-family:var(--f-mono)}
+.alt{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;width:100%;text-align:left;border:0;background:none;padding:9px 14px;cursor:pointer;border-top:1px dashed var(--line)}
+.alt:first-of-type{border-top:0}
+.alt:active{background:var(--sunk)}
+.alt .sw{width:8px;height:34px;border-radius:4px;background:var(--tc)}
+.alt .txt{min-width:0}
+.alt .txt b{display:block;font-size:.88rem;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alt .txt span{font-size:.78rem;color:var(--muted);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alt .go{font-family:var(--f-mono);font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:3px 6px;white-space:nowrap}
+
+.gap{margin-left:62px;font-size:.78rem;color:var(--muted);padding:2px 0 2px 12px;border-left:2px dotted var(--line)}
+.gap.walk{color:var(--warn);border-left-color:var(--warn);font-weight:700}
+
+.foot{margin-top:22px;display:grid;gap:10px;font-size:.85rem;color:var(--muted)}
+.foot .box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.foot h4{margin:0 0 4px;font-family:var(--f-display);font-weight:600;font-size:.95rem;color:var(--ink)}
+.foot button{border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:700;font-size:.85rem}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:10px;font-size:.88rem;z-index:10;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+@media (prefers-reduced-motion:no-preference){.card,.pick{transition:background .2s,border-color .2s}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Techorama 2026</h1>
+      <span class="where">Utrecht · 27–28 okt</span>
+    </div>
+    <div class="days" role="tablist" aria-label="Dag">
+      <button id="tab-di" role="tab" data-day="0"><b>Dinsdag</b><span>27 oktober</span></button>
+      <button id="tab-wo" role="tab" data-day="1"><b>Woensdag</b><span>28 oktober</span></button>
+    </div>
+  </header>
+
+  <section class="now" id="now" aria-live="polite"></section>
+
+  <div class="legend">
+    <span><i style="background:var(--ai)"></i>AI &amp; Agents</span>
+    <span><i style="background:var(--dev)"></i>Dev</span>
+    <span><i style="background:var(--sec)"></i>Architectuur &amp; Security</span>
+    <span><i style="background:var(--ops)"></i>Cloud &amp; DevOps</span>
+    <span><i style="background:var(--key)"></i>Keynote</span>
+  </div>
+
+  <main class="slots" id="slots"></main>
+
+  <footer class="foot">
+    <div class="box">
+      <h4>Kiezen</h4>
+      Tik op een alternatief om het je keuze te maken. Je keuzes worden op deze telefoon onthouden. Het advies (1e keus) blijft zichtbaar als label.
+      <div style="margin-top:8px"><button id="reset" type="button">Terug naar advies</button></div>
+    </div>
+    <div class="box">
+      <h4>Installeren</h4>
+      Tik in Chrome op ⋮ en kies <b>App installeren</b> (of <b>Toevoegen aan startscherm</b>). Na de eerste keer openen werkt de app ook zonder internet.
+    </div>
+    <div class="box">
+      Omschrijvingen zijn eigen samenvattingen op basis van titel en spreker; de officiële abstracts staan op de sessiepagina. Zalen met (JB) liggen waarschijnlijk in een ander deel van het gebouw dan Room 7–13. Programma kan nog wijzigen.
+    </div>
+  </footer>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],KEY:["key","Keynote"]};
+const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
+const URL0="https://techorama.nl/schedule/sessions/";
+// [room, speaker, title, track, level, id, omschrijving, waarom]
+const DAYS=[
+{date:"2026-10-27",name:"Dinsdag",slots:[
+["08:30","09:30",[["Room 12","Dado Van Peteghem","Scale vs Soul","KEY","I","1327742","Openingskeynote over de spanning tussen opschalen met technologie en AI en de menselijke kant van ons werk.","Zet de toon voor twee dagen. Registratie en ontbijt vanaf 07:30."]]],
+["09:45","10:45",[
+ ["Mission 1 (JB)","Geert van der Cruijsen","Who's in Charge? Taking Control of Coding Agents with OpenCode and OpenSpec","AI","I","1235596","Coding agents in de hand houden met OpenCode en OpenSpec. De kern: leg de intentie vast in specs in de repository in plaats van in een vluchtige chatsessie.","Dit is precies jouw werkwijze. Ideeën voor Project.md en full/delta specs."],
+ ["Room 13","Maddy Montaquila & Tommaso Stocchi","Aspireify your app in an hour","DEV","I","1233066","Live een bestaande app Aspire-ready maken: lokale orchestratie van app, database en containers met een dashboard voor logs en traces.","Kan de lokale dev-omgeving van WhisperPortal (Blazor + SQL + Whisper) vereenvoudigen."],
+ ["Room 7","Steve Gordon","Application Performance Optimisation in Practice","DEV","M","1187364","Performance in .NET: eerst meten en profilen, dan gericht optimaliseren, bijvoorbeeld door allocaties te verminderen.","Nuttig voor een centrale dienst als HangFireGateway."]]],
+["11:15","12:15",[
+ ["Room 8","Leonard Lobel","What's New for Developers in SQL Server 2025","DEV","M","1245628","Overzicht van nieuwe developer-features in SQL Server 2025, waarschijnlijk met onder meer JSON, vectoren en T-SQL-uitbreidingen.","Je datalaag draait op SQL Server met EF Core."],
+ ["Progress (JB)","Ian Cooper","Modular Code with Examples in C#","DEV","M","1244217","Een codebase opdelen in modules met duidelijke grenzen en afhankelijkheden, met C#-voorbeelden.","Sluit aan bij je Services → Repositories → Models-layering."],
+ ["Mission 1 (JB)","Andrew Clymer","Slaying the Password Dragon with Passkeys and .NET 10","SEC","M","1176719","Wachtwoordloos inloggen met passkeys (WebAuthn/FIDO2) in .NET 10.","Minder direct door Entra ID SSO, wel goede achtergrond."]]],
+["12:30","13:00",[["Room 12","Christian van Dijk","Ask and You Shall Generate: Building and Answering Questions at Cito with AI","AI","I","1309018","Korte lunchtalk over hoe Cito AI inzet voor het maken en beantwoorden van toetsvragen.","Onderwijscontext, makkelijk mee te pakken tijdens de lunch."]]],
+["13:15","14:15",[
+ ["Room 11","Hans Muns","How I Migrated a Production Blazor App in Under 40 Hours Using AI","DEV","I","1226286","Praktijkverhaal over het migreren van een Blazor-app in productie met AI: wat goed ging en waar het schuurde.","Blazor plus AI-agents in de praktijk, direct herkenbaar."],
+ ["Room 7","Jon Galloway","What's New In .NET 11","DEV","I","1324527","Wat er in .NET 11 aankomt, van runtime en ASP.NET Core tot tooling.","Je zit op .NET 10; komt vaak later ook online."],
+ ["Room 10","Filip Verlee","Gatekeeping the API: Azure-native vs Open-source on Kubernetes","OPS","M","1245292","API-gateways vergeleken: Azure-native tegenover open-source op Kubernetes.","Je draait op OKD/Kubernetes."]]],
+["14:30","15:30",[
+ ["Room 8","Mark Allibone","Blazor, MAUI, WPF, or WinForms? Picking the Right .NET UI Framework in the AI Coding Era","DEV","M","1247289","Welk .NET UI-framework kies je nu AI een groot deel van de code meeschrijft?","Je werkt aan Blazor-apps én desktopfunctionaliteit."],
+ ["Progress (JB)","Brian Randell","Your Pipeline Is the Target: A DevOps Field Guide to Modern Supply Chain Security","OPS","M","1252440","Waarom je CI/CD-pipeline en dependencies een doelwit zijn, en wat helpt.","Direct toepasbaar op je GitLab-pipelines en NuGet-packages."],
+ ["Mission 2 (JB)","Steve Gordon","Unveiling .NET Secrets with the World's Smallest C# Program","DEV","A","1187368","Wat de runtime allemaal doet, zelfs bij het kleinste C#-programma.","Leuke achtergrondkennis, minder direct toepasbaar."]]],
+["16:00","17:00",[
+ ["Room 10","Tomasz Masternak","When Abstractions Leak: Optimizing Message Queuing on SQL Server","DEV","M","1330095","SQL Server als message queue: waar de abstractie lekt en hoe je dat optimaliseert.","Hangfire in HangFireGateway doet precies dit."],
+ ["Mission 2 (JB)","Christian Wenz","Securing ASP.NET Core Today: Lessons from the New OWASP Top 10","SEC","M","1246663","De nieuwe OWASP Top 10 vertaald naar maatregelen in ASP.NET Core.","Goede checklist voor al je webapps."],
+ ["Progress (JB)","Stephen Cleary","Telemetry in .NET","DEV","M","1152280","Logging, metrics en tracing in .NET met de ingebouwde API's en OpenTelemetry.","Handig voor de keten Blazor → DSRI-pod."]]],
+["17:15","18:15",[
+ ["Room 12","Bart De Smet","C# 14 and Beyond","DEV","M","1246376","Nieuwe taalfeatures in C# 14 en waar de taal naartoe gaat.","C# 14 hoort bij .NET 10; sterke spreker."],
+ ["Mission 1 (JB)","Marc Duiker","Reliable Agentic Systems need Durable Execution","AI","A","1153820","Waarom langlopende processen durable execution nodig hebben: workflows die crashes overleven.","Past ook op je Whisper-jobs en Hangfire-taken."],
+ ["Room 7","Will Velida","Whose Identity Is It Anyway? Microsoft Entra Agent ID","AI","I","1173723","AI-agents een eigen identiteit en credentials geven met Microsoft Entra Agent ID.","Entra ID is jullie SSO."]]]
+]},
+{date:"2026-10-28",name:"Woensdag",slots:[
+["08:30","09:30",[
+ ["Room 11","Dennis Doomen","What I learned from modernizing a microservices architecture","SEC","M","1233691","Lessen uit de praktijk van het moderniseren van een microservices-architectuur.","Ervaren spreker met eerlijke praktijklessen."],
+ ["Mission 2 (JB)","Alex Thissen","Run locally, call from anywhere: Debugging cloud apps with Dev Tunnels","OPS","M","1177275","Een lokaal draaiende app tijdelijk van buitenaf bereikbaar maken om webhooks en callbacks te debuggen.","Handig bij testen met externe diensten."],
+ ["Room 8","Leonard Lobel","Developer's Guide to AI in SQL Server 2025 and Azure SQL","DEV","M","1245634","AI-mogelijkheden in de database, zoals vector search en embeddings.","Interessant voor zoektoepassingen in de bibliotheek."]]],
+["09:45","10:45",[
+ ["Room 8","Stephen Cleary","Async Masterclass","DEV","A","1152273","Diepgaande masterclass over async/await door een van de bekendste experts.","Essentieel voor Blazor Server, FileWatchers en achtergrondtaken."],
+ ["Room 7","Rockford Lhotka","Model Context Protocol (MCP) version 2","AI","M","1317798","Wat er nieuw is in de tweede versie van het Model Context Protocol.","Als je eigen tools of data aan AI-agents wilt ontsluiten."],
+ ["Room 13","Jon Galloway","Tokenomics: Writing Better Code with Fewer Tokens in GitHub Copilot","DEV","M","1324526","Efficiënter werken met Copilot door slimmer met context en tokens om te gaan.","Principes gelden ook voor andere coding agents."]]],
+["11:15","12:15",[
+ ["Room 9","Glenn F. Henriksen","The Web Platform Caught Up, but .NET Devs Didn't Notice","DEV","M","1246845","Moderne HTML- en CSS-features die veel .NET-developers nog niet gebruiken.","Kan JavaScript-interop in je Blazor-apps verminderen."],
+ ["Room 7","David Ortinau","Build Next-Gen AI Apps with .NET","DEV","M","1240554","AI-functionaliteit bouwen in .NET met de nieuwste Microsoft-bibliotheken.","Bouwstenen voor AI-features in Blazor."],
+ ["Room 13","Mark Heath","Reviving a Legacy Codebase with AI","AI","I","1319474","Hoe AI helpt een oude codebase te begrijpen en te moderniseren.","Handig voor oudere applicaties binnen de UB."]]],
+["13:15","14:15",[
+ ["Progress (JB)","Brian Randell","Local-First AI Development: Sovereignty, Silicon, and the Private Dev Loop","AI","M","1252426","AI lokaal draaien voor privacy en soevereiniteit, inclusief hardware- en toolingkeuzes.","Past bij je zelfgehoste Whisper op DSRI en AVG-denken."],
+ ["Room 7","Ardalis","Designing Software for Agentic Development","AI","I","1207930","Software en repositories zo inrichten dat AI-agents er goed en veilig mee werken.","Sluit direct aan bij je spec-driven werkwijze."],
+ ["Room 13","Kathleen Dollard","Creating great CLIs","DEV","M","1250676","Wat maakt een command-line tool prettig en robuust, en hoe bouw je die in .NET.","Voor eigen tooling rond oc en DSRI."]]],
+["14:30","15:30",[
+ ["Room 7","Hannes Lowette","10 things you didn't know EF Core can do","DEV","M","1211675","Tien minder bekende mogelijkheden van Entity Framework Core.","Kern van je datalaag; grote kans op bruikbare trucs."],
+ ["Room 10","Wesley Cabus","Are you sure your access tokens are really secure?","SEC","M","1173528","Hoe veilig zijn je access tokens: opslag, levensduur en misbruik.","Relevant voor de Entra ID-tokens in je apps."],
+ ["Room 11","Bas van de Sande","Beyond the Hyperscalers: How to build a sovereign tech stack","OPS","M","1207578","Een soevereine tech stack bouwen buiten de grote cloudpartijen.","Herkenbaar met een eigen OKD-cluster."]]],
+["16:00","17:00",[
+ ["Room 11","Robert Hartskeerl","Out with Entity Framework, In with Copilot","DEV","M","1320771","Stelling: data-access laten genereren door Copilot in plaats van EF Core.","Mooi tegengeluid na de EF Core-sessie."],
+ ["Room 8","Chris Ayers","The Well-Architected Architect","SEC","M","1246287","Veilige, betrouwbare, kostenefficiënte oplossingen volgens Well-Architected.","Principes bruikbaar buiten Azure."],
+ ["Room 7","Bart De Smet","Building an LLM from scratch in 60 minutes","AI","A","1246448","In een uur een klein taalmodel bouwen om te zien hoe een LLM werkt.","Voor begrip en plezier."]]],
+["17:15","18:15",[["Room 12","Paul Smit","A Fresh Perspective on Behaviour, Change and the Brain","KEY","I","1327743","Afsluitende keynote over gedrag, verandering en het brein.","Rustige afsluiter van de conferentie."]]]
+]}];
+
+const $=s=>document.querySelector(s);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let picks=store.get("tr26-picks",{});
+let open={};
+const key=(d,i)=>d+"-"+i;
+const chosen=(d,i)=>picks[key(d,i)]??0;
+const mins=s=>{const[h,m]=s.split(":").map(Number);return h*60+m};
+const isJB=r=>r.includes("(JB)");
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+
+function amsNow(){
+  if(location.hash==="#demo") return {date:"2026-10-27",m:mins("11:40")};
+  const p=Object.fromEntries(new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Amsterdam",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+  return {date:`${p.year}-${p.month}-${p.day}`,m:+p.hour*60+ +p.minute};
+}
+let day=(()=>{const n=amsNow();const i=DAYS.findIndex(d=>d.date===n.date);return i>=0?i:store.get("tr26-day",0)})();
+
+function tc(t){const c=T[t][0];return `--tc:var(--${c});--tint:var(--${c}-t)`}
+
+function renderSlots(){
+  const d=DAYS[day], n=amsNow(), today=n.date===d.date;
+  document.querySelectorAll(".days button").forEach(b=>b.setAttribute("aria-selected",+b.dataset.day===day));
+  let h="";
+  d.slots.forEach(([s,e,opts],i)=>{
+    const c=chosen(day,i), o=opts[c];
+    const st=today?(n.m>=mins(e)?"past":n.m>=mins(s)?"live":""):(n.date>d.date?"past":"");
+    const k=key(day,i);
+    h+=`<article class="slot ${st}" id="s-${k}">
+      <div class="t"><b>${s}</b><span>${e}</span></div>
+      <div class="card">
+        <div class="pick" style="${tc(o[3])}">
+          <div class="meta"><span class="chip room">${esc(o[0])}</span>${opts.length>1?`<span class="chip rank ${c?"alt":""}">${c?`${c+1}e advies`:"1e keus"}</span>`:""}<span class="chip lvl">${T[o[3]][1]} · ${L[o[4]]}</span></div>
+          <h3>${esc(o[2])}</h3>
+          <div class="who">${esc(o[1])}</div>
+          <button class="more" data-k="${k}" aria-expanded="${!!open[k]}">${open[k]?"Minder":"Waarom deze sessie"}</button>
+          ${open[k]?`<div class="info"><p>${esc(o[6])}</p><p class="why"><b>Voor jou:</b> ${esc(o[7])}</p><a href="${URL0+o[5]}" target="_blank" rel="noopener">Sessiepagina op techorama.nl ↗</a></div>`:""}
+        </div>
+        ${opts.length>1?`<div class="alts"><div class="h">Ook in dit slot</div>${opts.map((a,j)=>j===c?"":`
+          <button class="alt" data-k="${k}" data-j="${j}" style="${tc(a[3])}" aria-label="Kies ${esc(a[1])} in ${esc(a[0])}">
+            <span class="sw"></span>
+            <span class="txt"><b>${esc(a[2])}</b><span>${esc(a[0])} · ${esc(a[1])}</span></span>
+            <span class="go">${j+1}e · kies</span>
+          </button>`).join("")}</div>`:""}
+      </div></article>`;
+    const nx=d.slots[i+1];
+    if(nx){
+      const gap=mins(nx[0])-mins(e), r2=nx[2][chosen(day,i+1)][0];
+      let txt, walk=false;
+      if(gap>=45) txt=`Lunch ${e}–${nx[0]}`;
+      else if(gap<=0) txt=`Lunchtalk loopt door in de lunchpauze`;
+      else{ txt=`${gap} min pauze`; if(isJB(o[0])!==isJB(r2)){walk=true;txt+=` · wissel naar ${isJB(r2)?"JB-zaal":"Room 7–13"}, loop op tijd`} }
+      h+=`<div class="gap ${walk?"walk":""}">${txt}</div>`;
+    }
+  });
+  $("#slots").innerHTML=h;
+}
+
+function renderNow(){
+  const n=amsNow(), first=DAYS[0].date, last=DAYS[1].date;
+  const line=(label,d,i,dot)=>{const[s,e,opts]=DAYS[d].slots[i],o=opts[chosen(d,i)];
+    return `<div class="lbl">${dot?'<span class="dot"></span>':""}${label}</div><div class="big">${esc(o[2])}</div><div class="row"><span class="room">${esc(o[0])}</span><span class="sub">${s}–${e} · ${esc(o[1])}</span></div>`};
+  let h;
+  if(n.date<first){
+    const days=Math.round((Date.parse(first)-Date.parse(n.date))/864e5);
+    h=`<div class="lbl">Nog ${days} ${days===1?"dag":"dagen"}</div><div class="big">Dinsdag 27 oktober, registratie en ontbijt vanaf 07:30</div><hr>${line("Eerste sessie",0,0)}`;
+  }else if(n.date>last){
+    h=`<div class="lbl">Afgelopen</div><div class="big">Techorama 2026 zit erop. Je keuzes blijven hier staan als naslag.</div>`;
+  }else{
+    const d=DAYS.findIndex(x=>x.date===n.date);
+    if(d<0){h=`<div class="lbl">Tussen de dagen</div>`}
+    else{
+      const sl=DAYS[d].slots;
+      const cur=sl.findIndex(([s,e])=>n.m>=mins(s)&&n.m<mins(e));
+      const nxt=sl.findIndex(([s])=>mins(s)>n.m);
+      h="";
+      if(cur>=0) h+=line("Nu bezig",d,cur,true);
+      else if(n.m<mins(sl[0][0])) h+=`<div class="lbl">Goedemorgen</div><div class="big">Registratie en ontbijt vanaf 07:30</div>`;
+      else if(nxt>=0) h+=`<div class="lbl">Pauze</div>`;
+      if(nxt>=0){ if(h) h+="<hr>"; h+=line(`Hierna om ${sl[nxt][0]}`,d,nxt); }
+      else if(cur<0){ h+=d===0?`<div class="lbl">Klaar voor vandaag</div><hr>${line("Morgen als eerste",1,0)}`:`<div class="lbl">Klaar</div><div class="big">Dat was Techorama 2026.</div>`; }
+    }
+  }
+  $("#now").innerHTML=h;
+}
+
+function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,1800)}
+
+document.addEventListener("click",ev=>{
+  const tab=ev.target.closest(".days button");
+  if(tab){day=+tab.dataset.day;store.set("tr26-day",day);renderSlots();window.scrollTo({top:0});return}
+  const more=ev.target.closest(".more");
+  if(more){open[more.dataset.k]=!open[more.dataset.k];renderSlots();return}
+  const alt=ev.target.closest(".alt");
+  if(alt){picks[alt.dataset.k]=+alt.dataset.j;if(!picks[alt.dataset.k])delete picks[alt.dataset.k];store.set("tr26-picks",picks);renderSlots();renderNow();toast("Keuze aangepast");return}
+  if(ev.target.id==="reset"){picks={};store.set("tr26-picks",picks);renderSlots();renderNow();toast("Terug naar advies")}
+});
+
+renderSlots();renderNow();
+(()=>{const n=amsNow();if(DAYS[day].date===n.date){const el=document.querySelector(".slot.live")||document.querySelector(".slot:not(.past)");el&&el.scrollIntoView({block:"center"})}})();
+setInterval(()=>{renderNow();renderSlots()},60000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){renderNow();renderSlots()}});
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
+</script>
+
+</body>
+</html>
