@@ -18,8 +18,8 @@
 :root{
   --bg:#F3F4F8; --surface:#FFFFFF; --sunk:#E9EBF2; --ink:#141A2E; --muted:#5C6378; --line:#DDE1EB;
   --accent:#D9901A; --accent-ink:#1A1405; --now:#0E8A5F; --warn:#B4531C;
-  --ai:#6D3FE0; --dev:#1F5FD6; --sec:#C8323A; --ops:#D2601A; --key:#4A5568;
-  --ai-t:#F1ECFE; --dev-t:#EAF1FE; --sec-t:#FDECEC; --ops-t:#FEF1E7; --key-t:#EEF1F5;
+  --ai:#6D3FE0; --dev:#1F5FD6; --sec:#C8323A; --ops:#D2601A; --key:#4A5568; --data:#0F7D80; --lead:#A93C86;
+  --ai-t:#F1ECFE; --dev-t:#EAF1FE; --sec-t:#FDECEC; --ops-t:#FEF1E7; --key-t:#EEF1F5; --data-t:#E4F5F5; --lead-t:#F9E9F3;
   --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --f-body:"Atkinson Hyperlegible", "Segoe UI", Roboto, system-ui, sans-serif;
   --f-mono:"JetBrains Mono", ui-monospace, "Roboto Mono", monospace;
@@ -28,15 +28,15 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0D1020; --surface:#161A2D; --sunk:#1E2338; --ink:#E8EAF4; --muted:#9CA2BA; --line:#2A3050;
   --accent:#F0AE3C; --accent-ink:#1A1405; --now:#3CCB94; --warn:#F08A4B;
-  --ai:#A98BFF; --dev:#6FA0FF; --sec:#FF7B82; --ops:#FF9E5E; --key:#A7B1C4;
-  --ai-t:#231C43; --dev-t:#16254A; --sec-t:#3A1A22; --ops-t:#3A2416; --key-t:#20263A;
+  --ai:#A98BFF; --dev:#6FA0FF; --sec:#FF7B82; --ops:#FF9E5E; --key:#A7B1C4; --data:#4FD0D3; --lead:#F08AC8;
+  --ai-t:#231C43; --dev-t:#16254A; --sec-t:#3A1A22; --ops-t:#3A2416; --key-t:#20263A; --data-t:#12302F; --lead-t:#3A1B30;
   color-scheme:dark;
 }}
 :root[data-theme="dark"]{
   --bg:#0D1020; --surface:#161A2D; --sunk:#1E2338; --ink:#E8EAF4; --muted:#9CA2BA; --line:#2A3050;
   --accent:#F0AE3C; --accent-ink:#1A1405; --now:#3CCB94; --warn:#F08A4B;
-  --ai:#A98BFF; --dev:#6FA0FF; --sec:#FF7B82; --ops:#FF9E5E; --key:#A7B1C4;
-  --ai-t:#231C43; --dev-t:#16254A; --sec-t:#3A1A22; --ops-t:#3A2416; --key-t:#20263A;
+  --ai:#A98BFF; --dev:#6FA0FF; --sec:#FF7B82; --ops:#FF9E5E; --key:#A7B1C4; --data:#4FD0D3; --lead:#F08AC8;
+  --ai-t:#231C43; --dev-t:#16254A; --sec-t:#3A1A22; --ops-t:#3A2416; --key-t:#20263A; --data-t:#12302F; --lead-t:#3A1B30;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -56,6 +56,34 @@ button{font:inherit;color:inherit}
 .days button b{font-family:var(--f-display);font-weight:600;font-size:1rem}
 .days button span{font-size:.75rem;color:var(--muted)}
 .days button[aria-selected="true"]{background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+
+/* view switch + filters */
+.views{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;background:var(--sunk);padding:4px;border-radius:12px}
+.views button{border:0;background:transparent;border-radius:9px;padding:8px 6px;cursor:pointer;font-weight:700;font-size:.88rem;color:var(--muted)}
+.views button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.filters{margin-top:10px;display:grid;gap:8px}
+.filters input{width:100%;font:inherit;padding:9px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.fchip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:.8rem;cursor:pointer;white-space:nowrap}
+.fchip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.fchip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:var(--tc)}
+
+/* all-sessions view */
+.aslot{margin-top:16px}
+.aslot h2{font-family:var(--f-mono);font-size:.82rem;letter-spacing:.06em;margin:0 0 6px;padding:6px 2px;color:var(--muted);position:sticky;top:var(--topH,150px);background:var(--bg);z-index:3;display:flex;justify-content:space-between}
+.aslot h2 b{color:var(--ink)}
+.srow{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 12px 10px 14px;margin-bottom:6px;cursor:pointer;position:relative;overflow:hidden}
+.srow::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--tc)}
+.srow .box{width:24px;height:24px;border-radius:7px;border:2px solid var(--muted);display:grid;place-items:center;font-weight:800;color:transparent;margin-top:2px}
+.srow[aria-checked="true"]{background:var(--tint);border-color:var(--tc)}
+.srow[aria-checked="true"] .box{background:var(--tc);border-color:var(--tc);color:var(--bg)}
+.srow .txt{min-width:0}
+.srow .txt b{display:block;font-family:var(--f-display);font-weight:600;font-size:.98rem;line-height:1.25}
+.srow .txt .w{font-size:.85rem;color:var(--muted);margin-top:1px}
+.srow .meta{margin:5px 0 0}
+.srow a{color:var(--tc);font-weight:700;font-size:.8rem}
+.empty{color:var(--muted);text-align:center;padding:30px 0}
 
 /* now card */
 .now{margin-top:14px;background:var(--ink);color:var(--bg);border-radius:var(--r);padding:14px 16px;display:grid;gap:8px}
@@ -98,6 +126,7 @@ button{font:inherit;color:inherit}
 .info .why b{font-style:normal}
 .info a{color:var(--tc);font-weight:700;font-size:.85rem}
 .alts{border-top:1px solid var(--line)}
+.moreall{display:block;width:100%;border:0;border-top:1px dashed var(--line);background:none;padding:10px 14px;color:var(--muted);font-weight:700;font-size:.85rem;cursor:pointer;text-align:left}
 .alts .h{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:8px 14px 2px;font-family:var(--f-mono)}
 .alt{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;width:100%;text-align:left;border:0;background:none;padding:9px 14px;cursor:pointer;border-top:1px dashed var(--line)}
 .alt:first-of-type{border-top:0}
@@ -130,9 +159,18 @@ button{font:inherit;color:inherit}
       <button id="tab-di" role="tab" data-day="0"><b>Dinsdag</b><span>27 oktober</span></button>
       <button id="tab-wo" role="tab" data-day="1"><b>Woensdag</b><span>28 oktober</span></button>
     </div>
+    <div class="views" role="tablist" aria-label="Weergave">
+      <button role="tab" data-view="mine">Mijn dag</button>
+      <button role="tab" data-view="all">Alle sessies</button>
+    </div>
   </header>
 
   <section class="now" id="now" aria-live="polite"></section>
+
+  <div class="filters" id="filters" hidden>
+    <input id="q" type="search" placeholder="Zoek op titel of spreker" autocomplete="off" aria-label="Zoeken">
+    <div class="chips" id="chips"></div>
+  </div>
 
   <div class="legend">
     <span><i style="background:var(--ai)"></i>AI &amp; Agents</span>
@@ -143,11 +181,12 @@ button{font:inherit;color:inherit}
   </div>
 
   <main class="slots" id="slots"></main>
+  <main id="all" hidden></main>
 
   <footer class="foot">
     <div class="box">
       <h4>Kiezen</h4>
-      Tik op een alternatief om het je keuze te maken. Je keuzes worden op deze telefoon onthouden. Het advies (1e keus) blijft zichtbaar als label.
+      Tik op een alternatief om het je keuze te maken, of ga naar <b>Alle sessies</b> om uit het hele programma aan te vinken. Je keuzes worden op deze telefoon onthouden. Het advies (1e keus) blijft zichtbaar als label.
       <div style="margin-top:8px"><button id="reset" type="button">Terug naar advies</button></div>
     </div>
     <div class="box">
@@ -162,7 +201,7 @@ button{font:inherit;color:inherit}
 <div class="toast" id="toast" hidden></div>
 
 <script>
-const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],KEY:["key","Keynote"]};
+const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
 // [room, speaker, title, track, level, id, omschrijving, waarom]
@@ -223,6 +262,19 @@ const DAYS=[
 ["17:15","18:15",[["Room 12","Paul Smit","A Fresh Perspective on Behaviour, Change and the Brain","KEY","I","1327743","Afsluitende keynote over gedrag, verandering en het brein.","Rustige afsluiter van de conferentie."]]]
 ]}];
 
+// Volledig programma van techorama.nl (dag, start, einde, id, zaal, spreker, titel, track, niveau)
+const ALL=[[0,"08:30","09:30",1327742,"Room 12","Dado Van Peteghem","Scale vs Soul","AI & Agents",100],[0,"09:45","10:45",1235596,"Mission 1 (JB)","Geert van der Cruijsen","Who's in Charge? Taking Control of Coding Agents with OpenCode and OpenSpec","AI & Agents",100],[0,"09:45","10:45",1195296,"Mission 2 (JB)","Barbara Forbes","One Size Fits None: Make Azure best practices work for your organization","Architecture & Security",100],[0,"09:45","10:45",1196856,"Progress (JB)","Colin Dembovsky","Scrum to Swarm: Rethinking Software Delivery for the Age of Agents","AI & Agents",100],[0,"09:45","10:45",1246271,"Room 10","Chris Ayers","MITRE ATT&CK for Developers","Architecture & Security",200],[0,"09:45","10:45",1321242,"Room 11","Christophe Nasarre","Inside the Agent Loop: build a .NET Flight Recorder for Github Copilot, Cursor and Claude","AI & Agents",200],[0,"09:45","10:45",1216344,"Room 12","Jiří Činčura","Weird C# features you (don't) need to know about","Dev",200],[0,"09:45","10:45",1233066,"Room 13","Maddy Montaquila, Tommaso Stocchi","Aspireify your app in an hour","Dev",100],[0,"09:45","10:45",1187364,"Room 7","Steve Gordon","Application Performance Optimisation in Practice","Dev",200],[0,"09:45","10:45",1151769,"Room 8","Matthijs van der Veer","Mastering Multi-Agent Madness With Microsoft Agent Framework","AI & Agents",200],[0,"09:45","10:45",1192213,"Room 9","Sam Debruyn","Thread by Thread: Lessons from Migrating to Fabric","Data",100],[0,"11:15","12:15",1176719,"Mission 1 (JB)","Andrew Clymer","Slaying the Password Dragon with Passkeys and .NET 10","Architecture & Security",200],[0,"11:15","12:15",1207641,"Mission 2 (JB)","Jurre Brandsen","Agents Don't Sleep: How AI Turns a 3 AM Incident into a Reviewable Fix","AI & Agents",200],[0,"11:15","12:15",1244217,"Progress (JB)","Ian Cooper","Modular Code with Examples in C#","Dev",200],[0,"11:15","12:15",1320606,"Room 10","Alexander Arvidsson","Fabric FinOps - Cost Optimization for Fabric","Data",200],[0,"11:15","12:15",1318364,"Room 11","Max Gfeller","Let's build our own coding agent","AI & Agents",200],[0,"11:15","12:15",1250681,"Room 12","Kathleen Dollard","Kindness in tech","Leadership & Productivity",100],[0,"11:15","12:15",1246903,"Room 13","Jeff Prosise","Beat the Clock: Building a Production-Ready Agentic App in 60 Minutes","AI & Agents",300],[0,"11:15","12:15",1320836,"Room 7","Dylan Beattie","Do It With Style: Rethinking CSS","Dev",200],[0,"11:15","12:15",1245628,"Room 8","Leonard Lobel","What’s New for Developers in SQL Server 2025","Dev",200],[0,"11:15","12:15",1316134,"Room 9","Juliana Smith","Building an Application with Copilot and Lovable: The Easy, the Hard, and the Unexpected","AI & Agents",100],[0,"12:30","13:00",1309018,"Room 12","Christian van Dijk","Ask and You Shall Generate: Building and Answering Questions at Cito with AI","AI & Agents",100],[0,"13:15","14:15",1185098,"Mission 1 (JB)","Poornima Nayar","The Myth of Message Ordering: What Message Brokers Actually Guarantee","Architecture & Security",200],[0,"13:15","14:15",1207790,"Mission 2 (JB)","Pieter Vanhove","When AI meets your database: Securing sensitive data in Azure SQL in an AI-driven world","Data",200],[0,"13:15","14:15",1317875,"Progress (JB)","Sam Basu","Developer Workflows in AI Age - Local or Cloud 🧠🤖","AI & Agents",200],[0,"13:15","14:15",1245292,"Room 10","Filip Verlee","Gatekeeping the API Azure-native vs Open-source on Kubernetes","Cloud & DevOps",200],[0,"13:15","14:15",1226286,"Room 11","Hans Muns","How I Migrated a Production Blazor App in Under 40 Hours Using AI","Dev",100],[0,"13:15","14:15",1207969,"Room 12","Ardalis .","Antipatterns, Smells, and Worst Practices 💩😱","Dev",100],[0,"13:15","14:15",1190251,"Room 13","Rockford Lhotka","Build an Enterprise-Grade MCP Server","AI & Agents",100],[0,"13:15","14:15",1324527,"Room 7","Jon Galloway","What's New In .NET 11","Dev",100],[0,"13:15","14:15",1228359,"Room 8","Randy Pagels","Mission Copilot Autofix: Securing the World’s Code with AI and GitHub Advanced Security","Architecture & Security",100],[0,"13:15","14:15",1205255,"Room 9","Ruben Scheedler","Doctor, my agent keeps acting up","AI & Agents",100],[0,"14:30","15:30",1151925,"Mission 1 (JB)","Laila Bougria","Change is inevitable: versioning event-driven systems","Architecture & Security",300],[0,"14:30","15:30",1187368,"Mission 2 (JB)","Steve Gordon","Unveiling .NET Secrets with the World's Smallest C# Program","Dev",300],[0,"14:30","15:30",1252440,"Progress (JB)","Brian Randell","Your Pipeline Is the Target: A DevOps Field Guide to Modern Supply Chain Security","Cloud & DevOps",200],[0,"14:30","15:30",1175301,"Room 10","Florian Lenz","Building AI-Ready Data Infrastructure at Terabyte Scale with Terraform and Azure","Data",200],[0,"14:30","15:30",1246988,"Room 11","Yianna Paris","One arrow, multiple breaches: what I've learned jailbreaking AI chatbots","Architecture & Security",100],[0,"14:30","15:30",1216224,"Room 12","Luise Freese","POC Prison: Why agentic systems never escape the lab and how to fix that in 90 days","AI & Agents",100],[0,"14:30","15:30",1275951,"Room 13","Josh Johanning, Tiago Pascoal","From Code Health to Quality Gates with GitHub Code Quality","Dev",100],[0,"14:30","15:30",1241958,"Room 7","Richard Campbell","Above the Cloud: Building Data Centers in Space","AI & Agents",200],[0,"14:30","15:30",1247289,"Room 8","Mark Allibone","Blazor, MAUI, WPF, or WinForms? Picking the Right .NET UI Framework in the AI Coding Era","Dev",200],[0,"14:30","15:30",1210579,"Room 9","Dean Schuster","Doing Agentic Micro UI Right — User Experience Rules","AI & Agents",100],[0,"16:00","17:00",1247138,"Mission 1 (JB)","Bob Ward","The Developers Guide to Azure SQL Hyperscale","Data",200],[0,"16:00","17:00",1246663,"Mission 2 (JB)","Christian Wenz","Securing ASP.NET Core Today: Lessons from the New OWASP Top 10","Architecture & Security",200],[0,"16:00","17:00",1152280,"Progress (JB)","Stephen Cleary","Telemetry in .NET","Dev",200],[0,"16:00","17:00",1330095,"Room 10","Tomasz Masternak","When Abstractions Leak: Optimizing Message Queuing on SQL Server","Dev",200],[0,"16:00","17:00",1232821,"Room 11","Rik Hepworth","It's a trap! Stuff a developer needs to know about Azure networking","Cloud & DevOps",100],[0,"16:00","17:00",1208113,"Room 12","Arthur Doler","You’re Not Just Tired: The Psychology of Burnout","Leadership & Productivity",100],[0,"16:00","17:00",1252001,"Room 13","Matt Ellis","Beyond the State Machine: The New Era of .NET Concurrency","Dev",200],[0,"16:00","17:00",1241884,"Room 7","David Ortinau","Trust Fall: Building UX for Apps that work on their own","AI & Agents",200],[0,"16:00","17:00",1246312,"Room 8","Christina Wheeler","Copilot Studio for Developers: What You Need to Unlearn","AI & Agents",200],[0,"16:00","17:00",1155333,"Room 9","Tomaž Kaštrun","Building AI solutions using Azure AI Foundry","AI & Agents",200],[0,"17:15","18:15",1153820,"Mission 1 (JB)","Marc Duiker","Reliable Agentic Systems need Durable Execution","AI & Agents",300],[0,"17:15","18:15",1329755,"Mission 2 (JB)","Liuba Gonta","Problems scale faster with AI","Leadership & Productivity",100],[0,"17:15","18:15",1246091,"Progress (JB)","Clemens Vasters","Azure Service Bus - Behind the scenes","Architecture & Security",200],[0,"17:15","18:15",1193663,"Room 10","Roland König","Modern cross-platform applications with .NET and Avalonia UI","Dev",100],[0,"17:15","18:15",1241602,"Room 11","Jelle Fremery","Optimizing data for agentic use","Data",100],[0,"17:15","18:15",1246376,"Room 12","Bart De Smet","C# 14 and Beyond","Dev",200],[0,"17:15","18:15",1228368,"Room 13","Randy Pagels","Test Smarter with AI: Playwright Automation at Scale on Azure","Dev",100],[0,"17:15","18:15",1173723,"Room 7","Will Velida","\"Whose Identity Is It Anyway? Giving AI Agents Their Own Credentials with Microsoft Entra Agent ID\"","AI & Agents",100],[0,"17:15","18:15",1230041,"Room 8","Tom van den Berg","SRE practices in an agentic world","AI & Agents",200],[0,"17:15","18:15",1175298,"Room 9","Florian Lenz","Building Better Azure Systems: The Art of Solution Architecture on Azure","Architecture & Security",200],[1,"08:30","09:30",1183827,"Mission 1 (JB)","Will Velida","Applying the OWASP Top 10 for Agentic Applications to Your AI Agents","AI & Agents",200],[1,"08:30","09:30",1177275,"Mission 2 (JB)","Alex Thissen","Run locally, call from anywhere: Debugging cloud apps with Dev Tunnels","Cloud & DevOps",200],[1,"08:30","09:30",1202445,"Progress (JB)","Jeff Prosise","Death by Tool Calls: Using CodeGen Agents to Solve the Biggest Problem with Agentic AI","AI & Agents",300],[1,"08:30","09:30",1181517,"Room 10","Dean Schuster","Don’t talk to me like I’m a computer scientist.","Dev",100],[1,"08:30","09:30",1233691,"Room 11","Dennis Doomen","What I learned from modernizing a microservices architecture","Architecture & Security",200],[1,"08:30","09:30",1320835,"Room 12","Dylan Beattie","OK, Code Is Worthless... Now What?","AI & Agents",100],[1,"08:30","09:30",1236348,"Room 13","Danny Kruge, Tonie Huizer","Data Platform Bingo: Deployment Edition","Data",100],[1,"08:30","09:30",1317872,"Room 7","Sam Basu","Interoperability of .NET","Dev",200],[1,"08:30","09:30",1245634,"Room 8","Leonard Lobel","Developer’s Guide to AI in SQL Server 2025 and Azure SQL","Dev",200],[1,"08:30","09:30",1200815,"Room 9","Thijs Baan","Cognitive Shift: How Agentic AI Changes the Way We Think","AI & Agents",200],[1,"09:45","10:45",1248478,"Mission 1 (JB)","Bob Ward","Reimagining PostgreSQL for AI Apps: Inside Azure HorizonDB","Data",200],[1,"09:45","10:45",1324526,"Mission 2 (JB)","Jon Galloway","Tokenomics: Writing Better Code with Fewer Tokens in GitHub Copilot","Dev",200],[1,"09:45","10:45",1216334,"Progress (JB)","Jiří Činčura","Azure Spot instances as your secret weapon","Cloud & DevOps",100],[1,"09:45","10:45",1153288,"Room 10","Christian Schabetsberger","CRAcking Compliance - The EU Cyber Resilience Act","Architecture & Security",200],[1,"09:45","10:45",1213522,"Room 11","Arne De Proft, Laura Verghote","Shipping genAI with confidence using ASSERT and evaluations in Microsoft Foundry","AI & Agents",200],[1,"09:45","10:45",1275945,"Room 12","Josh Johanning, Tiago Pascoal","Quality in the Agentic Era: Keeping Engineering Standards at AI Speed","AI & Agents",200],[1,"09:45","10:45",1241959,"Room 13","Richard Campbell","The Future of Energy","AI & Agents",200],[1,"09:45","10:45",1317798,"Room 7","Rockford Lhotka","Model Context Protocol (MCP) version 2","AI & Agents",200],[1,"09:45","10:45",1152273,"Room 8","Stephen Cleary","Async Masterclass","Dev",300],[1,"09:45","10:45",1312362,"Room 9","Zinat Farhang","From APIs to Agents: Building Governed AI Workflows","Dev",100],[1,"11:15","12:15",1322115,"Mission 1 (JB)","Andreas Wänqvist","Dark Factories - From Science Fiction to Production","AI & Agents",200],[1,"11:15","12:15",1313715,"Mission 2 (JB)","Jacco Rademaker","Combining Azure DevOps with GitHub: what to expect","Cloud & DevOps",100],[1,"11:15","12:15",1246095,"Progress (JB)","Clemens Vasters","What time is it? The mysterious clocks of sports and other things we do.","Data",100],[1,"11:15","12:15",1256156,"Room 10","Dwight Matthys","Beyond DDD vs EA: Architecting Autonomous Landscapes That Actually Scale","Architecture & Security",300],[1,"11:15","12:15",1202282,"Room 11","Soham Dasgupta","Continuous Evaluation & Monitoring for AI Applications","Architecture & Security",300],[1,"11:15","12:15",1219377,"Room 12","Eva Ditzelmüller, Stefan Pölz","Pattern-based C#: if it quacks like a duck…","Dev",200],[1,"11:15","12:15",1242813,"Room 13","Jesse Wellenberg, Patrick de Kruijf","From 10 to 10,000 Agents: Engineering a Governed AI Platform on Azure with Citadel","AI & Agents",200],[1,"11:15","12:15",1240554,"Room 7","David Ortinau","Build Next-Gen AI Apps with .NET","Dev",200],[1,"11:15","12:15",1319474,"Room 8","Mark Heath","Reviving a Legacy Codebase with AI","AI & Agents",100],[1,"11:15","12:15",1246845,"Room 9","Glenn F. Henriksen","The Web Platform Caught Up, but .NET Devs Didn't Notice","Dev",200],[1,"12:30","13:00",1319115,"Room 12","Ömer Zülaloğlu","Ik automatiseerde mijn eigen werk weg: twee AI-agents in incident response","AI & Agents",200],[1,"13:15","14:15",1341135,"Mission 1 (JB)","Sam Debruyn","From Fabric to Fantastic: How dbt Makes Your Lakehouses and Warehouses Shine","Data",100],[1,"13:15","14:15",1194187,"Mission 2 (JB)","Willem Meints","Building a Hybrid AI Platform for Agent-Heavy Engineering","AI & Agents",200],[1,"13:15","14:15",1252426,"Progress (JB)","Brian Randell","Local-First AI Development: Sovereignty, Silicon, and the Private Dev Loop","AI & Agents",200],[1,"13:15","14:15",1176932,"Room 10","Sam Bellen","Bearer of Good News","Architecture & Security",200],[1,"13:15","14:15",1174189,"Room 11","Erwin Staal","Digital Sovereignty on the Azure Cloud","Cloud & DevOps",200],[1,"13:15","14:15",1237073,"Room 12","Jody Donetti","Beyond HybridCache: FusionCache","Dev",200],[1,"13:15","14:15",1250676,"Room 13","Kathleen Dollard","Creating great CLIs","Dev",200],[1,"13:15","14:15",1207930,"Room 7","Ardalis .","Designing Software for Agentic Development","AI & Agents",100],[1,"13:15","14:15",1175918,"Room 8","Oliver Sturm","LLMs in the Event-Sourced World: Commands, Projections and Sagas","AI & Agents",200],[1,"13:15","14:15",1306442,"Room 9","Gerrit van den Geest","Agentic Refactoring at Scale: From Loosely Typed VB.NET to Modern C#","Dev",200],[1,"14:30","15:30",1329465,"Mission 1 (JB)","Arnoud Boere","Making AI Useful: Structuring Data Through a Semantic Layer","AI & Agents",100],[1,"14:30","15:30",1207611,"Mission 2 (JB)","Maxim Salnikov","From Assistant to Actor: The New Security Risks of Coding Agents","Architecture & Security",200],[1,"14:30","15:30",1247314,"Progress (JB)","Mark Allibone","Lessons Learnt: What Really Happens When You Give AI to Low-Code/No-Code Developers","AI & Agents",200],[1,"14:30","15:30",1173528,"Room 10","Wesley Cabus","Are you sure your access tokens are really secure?","Architecture & Security",200],[1,"14:30","15:30",1207578,"Room 11","Bas van de Sande","Beyond the Hyperscalers: How to build a sovereign tech stack with what you already know","Cloud & DevOps",200],[1,"14:30","15:30",1233053,"Room 12","Maddy Montaquila, Tommaso Stocchi","Use Agents to Build Agents with Aspire + Microsoft Agent Framework","AI & Agents",200],[1,"14:30","15:30",1219379,"Room 13","Eva Ditzelmüller, Stefan Pölz","C#shenanigans","Dev",200],[1,"14:30","15:30",1211675,"Room 7","Hannes Lowette","10 things you didn't know EF Core can do","Dev",200],[1,"14:30","15:30",1246316,"Room 8","Christina Wheeler","Copilot Studio Tools Deep Dive: From Connectors to MCP","AI & Agents",200],[1,"14:30","15:30",1176888,"Room 9","Christophe Nasarre","Build your own CLI tools or how to allow AI agents to troubleshoot production issues","Dev",200],[1,"16:00","17:00",1328428,"Mission 1 (JB)","Wesley Haakman","GitHub Agents of Camelot: Building and Defending the Cloud Kingdom","Cloud & DevOps",200],[1,"16:00","17:00",1208747,"Mission 2 (JB)","Iulia Feroli","How I built my own intelligent Robot Arm from Scratch","AI & Agents",100],[1,"16:00","17:00",1208116,"Progress (JB)","Arthur Doler","How To Not Strangle Your Coworkers: Resolving Conflict with Collaboration","Leadership & Productivity",200],[1,"16:00","17:00",1235784,"Room 10","Dante De Ruwe","The Fun Side of Advanced TypeScript: A Live Coding Session","Dev",300],[1,"16:00","17:00",1320771,"Room 11","Robert Hartskeerl","Out with Entity Framework, In with Copilot","Dev",200],[1,"16:00","17:00",1152476,"Room 13","Tom van den Berg","From \"Trust Me\" to \"Verify Me\"","Architecture & Security",200],[1,"16:00","17:00",1246448,"Room 7","Bart De Smet","Building an LLM from scratch in 60 minutes","AI & Agents",300],[1,"16:00","17:00",1246287,"Room 8","Chris Ayers","The Well-Architected Architect - Building Secure, Reliable, Cost-efficient Solutions on Azure","Architecture & Security",200],[1,"16:00","17:00",1320725,"Room 9","Luca Berton","Your AI Agent Needs a Kill Switch: Engineering Agents for Production","AI & Agents",100],[1,"17:15","18:15",1327743,"Room 12","Paul Smit","A Fresh Perspective on Behaviour, Change and the Brain","",100]];
+const TRK={"AI & Agents":"AI","Architecture & Security":"SEC","Dev":"DEV","Data":"DATA","Leadership & Productivity":"LEAD","Cloud & DevOps":"OPS"};
+const LV={100:"I",200:"M",300:"A"};
+const roomKey=r=>(r.includes("(JB)")?100:0)+(parseInt(r.replace(/D+/g,""))||0);
+// Per slot: eerst het advies (index < sl[3]), daarna de overige sessies uit het hele programma.
+DAYS.forEach((d,di)=>d.slots.forEach(sl=>{
+  const have=new Set(sl[2].map(o=>+o[5]));
+  const extra=ALL.filter(a=>a[0]===di&&a[1]===sl[0]&&!have.has(a[3])).sort((a,b)=>roomKey(a[4])-roomKey(b[4]))
+    .map(a=>[a[4],a[5],a[6],TRK[a[7]]||"KEY",LV[a[8]]||"M",String(a[3]),"",""]);
+  sl[3]=sl[2].length; sl[2]=sl[2].concat(extra);
+}));
+
 const $=s=>document.querySelector(s);
 const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let picks=store.get("tr26-picks",{});
@@ -242,7 +294,7 @@ let day=(()=>{const n=amsNow();const i=DAYS.findIndex(d=>d.date===n.date);return
 
 function tc(t){const c=T[t][0];return `--tc:var(--${c});--tint:var(--${c}-t)`}
 
-function renderSlots(){
+function renderMine(){
   const d=DAYS[day], n=amsNow(), today=n.date===d.date;
   document.querySelectorAll(".days button").forEach(b=>b.setAttribute("aria-selected",+b.dataset.day===day));
   let h="";
@@ -254,18 +306,18 @@ function renderSlots(){
       <div class="t"><b>${s}</b><span>${e}</span></div>
       <div class="card">
         <div class="pick" style="${tc(o[3])}">
-          <div class="meta"><span class="chip room">${esc(o[0])}</span>${opts.length>1?`<span class="chip rank ${c?"alt":""}">${c?`${c+1}e advies`:"1e keus"}</span>`:""}<span class="chip lvl">${T[o[3]][1]} · ${L[o[4]]}</span></div>
+          <div class="meta"><span class="chip room">${esc(o[0])}</span>${opts.length>1?`<span class="chip rank ${c?"alt":""}">${c>=d.slots[i][3]?"eigen keuze":c?`${c+1}e advies`:"1e keus"}</span>`:""}<span class="chip lvl">${T[o[3]][1]} · ${L[o[4]]}</span></div>
           <h3>${esc(o[2])}</h3>
           <div class="who">${esc(o[1])}</div>
           <button class="more" data-k="${k}" aria-expanded="${!!open[k]}">${open[k]?"Minder":"Waarom deze sessie"}</button>
-          ${open[k]?`<div class="info"><p>${esc(o[6])}</p><p class="why"><b>Voor jou:</b> ${esc(o[7])}</p><a href="${URL0+o[5]}" target="_blank" rel="noopener">Sessiepagina op techorama.nl ↗</a></div>`:""}
+          ${open[k]?`<div class="info">${o[6]?`<p>${esc(o[6])}</p><p class="why"><b>Voor jou:</b> ${esc(o[7])}</p>`:""}<a href="${URL0+o[5]}" target="_blank" rel="noopener">Sessiepagina op techorama.nl ↗</a></div>`:""}
         </div>
-        ${opts.length>1?`<div class="alts"><div class="h">Ook in dit slot</div>${opts.map((a,j)=>j===c?"":`
+        ${opts.length>1?`<div class="alts"><div class="h">Ook in dit slot</div>${opts.map((a,j)=>j===c||j>=d.slots[i][3]?"":`
           <button class="alt" data-k="${k}" data-j="${j}" style="${tc(a[3])}" aria-label="Kies ${esc(a[1])} in ${esc(a[0])}">
             <span class="sw"></span>
             <span class="txt"><b>${esc(a[2])}</b><span>${esc(a[0])} · ${esc(a[1])}</span></span>
             <span class="go">${j+1}e · kies</span>
-          </button>`).join("")}</div>`:""}
+          </button>`).join("")}<button class="moreall" data-k="${k}" type="button">Alle ${opts.length} sessies in dit slot bekijken en aanvinken →</button></div>`:""}
       </div></article>`;
     const nx=d.slots[i+1];
     if(nx){
@@ -278,6 +330,40 @@ function renderSlots(){
     }
   });
   $("#slots").innerHTML=h;
+}
+
+let view=store.get("tr26-view","mine"), fTrack="", fq="";
+function renderSlots(){
+  document.querySelectorAll(".views button").forEach(b=>b.setAttribute("aria-selected",b.dataset.view===view));
+  document.querySelectorAll(".days button").forEach(b=>b.setAttribute("aria-selected",+b.dataset.day===day));
+  $("#slots").hidden=view!=="mine"; $("#all").hidden=view!=="all"; $("#filters").hidden=view!=="all";
+  document.querySelector(".legend").hidden=view!=="mine";
+  if(view==="all") renderAll(); else renderMine();
+  document.documentElement.style.setProperty("--topH",document.querySelector(".top").offsetHeight+"px");
+}
+function renderChips(){
+  const codes=[...new Set(DAYS[day].slots.flatMap(s=>s[2].map(o=>o[3])))];
+  $("#chips").innerHTML=`<button class="fchip" data-t="" aria-pressed="${!fTrack}">Alles</button>`+codes.map(c=>`<button class="fchip" data-t="${c}" style="${tc(c)}" aria-pressed="${fTrack===c}"><i></i>${T[c][1]}</button>`).join("");
+}
+function renderAll(){
+  renderChips();
+  const d=DAYS[day], q=fq.trim().toLowerCase();
+  let h="";
+  d.slots.forEach(([s,e,opts,nAdv],i)=>{
+    const k=key(day,i), c=chosen(day,i);
+    const rows=opts.map((o,j)=>[o,j]).filter(([o,j])=>j===c||((!fTrack||o[3]===fTrack)&&(!q||(o[2]+" "+o[1]).toLowerCase().includes(q))));
+    if(!rows.some(([o,j])=>j!==c)&&(fTrack||q)) return;
+    h+=`<section class="aslot" id="a-${k}"><h2><b>${s}–${e}</b><span>${opts.length>1?opts.length+" sessies":"1 sessie"}</span></h2>`;
+    rows.forEach(([o,j])=>{
+      h+=`<div class="srow" role="checkbox" tabindex="0" aria-checked="${j===c}" data-k="${k}" data-j="${j}" style="${tc(o[3])}">
+        <span class="box">✓</span>
+        <span class="txt"><b>${esc(o[2])}</b><div class="w">${esc(o[1])}</div>
+          <div class="meta"><span class="chip room">${esc(o[0])}</span><span class="chip lvl">${T[o[3]][1]} · ${L[o[4]]}</span>${j<nAdv?`<span class="chip rank ${j?"alt":""}">${j+1}e advies</span>`:""}</div>
+          <a href="${URL0+o[5]}" target="_blank" rel="noopener">Sessiepagina ↗</a></span></div>`;
+    });
+    h+="</section>";
+  });
+  $("#all").innerHTML=h||'<p class="empty">Geen sessies gevonden.</p>';
 }
 
 function renderNow(){
@@ -310,7 +396,23 @@ function renderNow(){
 
 function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,1800)}
 
+function pickRow(row){
+  const k=row.dataset.k, j=+row.dataset.j, y=window.scrollY;
+  if(picks[k]===j||(!picks[k]&&j===0)) return;
+  picks[k]=j; if(!j) delete picks[k];
+  store.set("tr26-picks",picks); renderAll(); renderNow(); window.scrollTo({top:y}); toast("Aangevinkt");
+}
+document.addEventListener("keydown",ev=>{const r=ev.target.closest&&ev.target.closest(".srow");if(r&&(ev.key===" "||ev.key==="Enter")){ev.preventDefault();pickRow(r)}});
+$("#q").addEventListener("input",ev=>{fq=ev.target.value;renderAll()});
 document.addEventListener("click",ev=>{
+  const vw=ev.target.closest(".views button");
+  if(vw){view=vw.dataset.view;store.set("tr26-view",view);renderSlots();window.scrollTo({top:0});return}
+  const fc=ev.target.closest(".fchip");
+  if(fc){fTrack=fc.dataset.t;renderAll();return}
+  const row=ev.target.closest(".srow");
+  if(row&&!ev.target.closest("a")){pickRow(row);return}
+  const ma=ev.target.closest(".moreall");
+  if(ma){view="all";fTrack="";fq="";$("#q").value="";store.set("tr26-view",view);renderSlots();const el=document.getElementById("a-"+ma.dataset.k);el&&el.scrollIntoView({block:"start"});return}
   const tab=ev.target.closest(".days button");
   if(tab){day=+tab.dataset.day;store.set("tr26-day",day);renderSlots();window.scrollTo({top:0});return}
   const more=ev.target.closest(".more");
@@ -321,7 +423,7 @@ document.addEventListener("click",ev=>{
 });
 
 renderSlots();renderNow();
-(()=>{const n=amsNow();if(DAYS[day].date===n.date){const el=document.querySelector(".slot.live")||document.querySelector(".slot:not(.past)");el&&el.scrollIntoView({block:"center"})}})();
+(()=>{const n=amsNow();if(view==='mine'&&DAYS[day].date===n.date){const el=document.querySelector(".slot.live")||document.querySelector(".slot:not(.past)");el&&el.scrollIntoView({block:"center"})}})();
 setInterval(()=>{renderNow();renderSlots()},60000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){renderNow();renderSlots()}});
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
