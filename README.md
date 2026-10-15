@@ -59,6 +59,7 @@ Als je alleen het stuk na de `#` in de adresbalk aanpast, springt de app direct 
 - Voor sessies zonder eigen omschrijving staat alleen een link naar techorama.nl.
 - Je keuzes worden alleen op je eigen telefoon bewaard.
 - Het programma kan nog wijzigen. Controleer de week ervoor het schema op techorama.nl.
+  Draai `node check-programma.js` om het programma op techorama.nl automatisch te vergelijken met de app (tijden, zalen, titels, nieuwe of vervallen sessies).
 - Open de app een paar dagen voor de conferentie nog een keer met wifi. Dan haalt hij eventuele updates op.
 
 ---
