@@ -1,25 +1,8 @@
 // Vergelijkt het programma op techorama.nl met de sessies in index.html (ALL en DAYS).
 // Gebruik: node check-programma.js   (Node 18+). Afsluitcode 1 bij verschillen.
 const fs = require("fs");
-const dec = s => s.replace(/&#x([0-9A-F]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
-  .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(+d)).replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+const { live } = require("./haal-programma.js");
 const norm = s => s.replace(/[’‘]/g, "'").replace(/^"|"$/g, "").replace(/ & /g, ", ").replace(/\s*\.$/, "").trim();
-
-async function live() {
-  const rows = [];
-  for (const [day, path] of [[0, "tuesday"], [1, "wednesday"]]) {
-    const h = await (await fetch("https://techorama.nl/schedule/" + path)).text();
-    for (const p of h.split('<div class="agenda-slot">').slice(1)) {
-      const m = p.match(/<strong>(\d\d:\d\d)&#x2013;(\d\d:\d\d)<\/strong>/);
-      for (const c of p.split('<a class="session-card" href="').slice(1)) {
-        const g = (re, d = "") => dec((c.match(re) || [, d])[1]);
-        rows.push([day, m[1], m[2], +c.match(/^\/schedule\/sessions\/(\d+)/)[1], g(/session-card__time">([^<]*)/),
-          g(/secondary">([^<]*)/), g(/session-card__title">([^<]*)/), g(/session-track [^"]*">([^<]*)/)]);
-      }
-    }
-  }
-  return rows;
-}
 
 (async () => {
   const src = fs.readFileSync(__dirname + "/index.html", "utf8");

@@ -1,5 +1,5 @@
 // Verhoog VERSION bij elke wijziging van index.html (en zet APP_VERSION in index.html gelijk), zodat telefoons de nieuwe versie ophalen.
-const VERSION = "v19";
+const VERSION = "v20";
 const CACHE = "techorama26-" + VERSION;
 const FONTS = "techorama26-fonts";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest",
@@ -21,6 +21,9 @@ self.addEventListener("fetch", e => {
   const url = new URL(req.url);
 
   // Eigen bestanden: direct uit de cache (werkt offline), op de achtergrond verversen.
+  // Het programma uit de eigen repo altijd vers van het netwerk (niet uit de cache).
+  if (url.pathname.endsWith("/programma.json")) return;
+
   if (url.origin === self.location.origin) {
     // Navigatie valt terug op de app-shell, behalve naar het spelletje (spel.html).
     const key = req.mode === "navigate" && !url.pathname.endsWith("/spel.html") ? "./index.html" : req;

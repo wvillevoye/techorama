@@ -255,6 +255,12 @@ button{font:inherit;color:inherit}
       <input type="file" id="bk-file" accept=".json,application/json" hidden>
     </div>
     <div class="box">
+      <h4>Programma controleren</h4>
+      Vergelijkt de sessies in deze app met het programma op techorama.nl (elk uur bijgewerkt) en laat zien wat anders is.
+      <div style="margin-top:8px"><button id="pg-check" type="button">Controleer programma</button></div>
+      <div id="pg-out" style="margin-top:8px" aria-live="polite"></div>
+    </div>
+    <div class="box">
       <h4>Weergave</h4>
       <div style="display:flex;gap:6px;flex-wrap:wrap" id="themes">
         <button type="button" data-th="auto">Automatisch</button>
@@ -286,7 +292,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v19";
+const APP_VERSION="v20";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -557,6 +563,37 @@ document.addEventListener("input",ev=>{
   store.set("tr26-notes",notes);
   const b=ta.closest(".pick").querySelector(".notebtn"); if(b){b.classList.toggle("has",!!notes[id]);b.textContent="✎ "+(notes[id]?"Notitie ●":"Notitie")}
 });
+const pgNorm=s=>String(s).replace(/[’‘]/g,"'").replace(/^"|"$/g,"").replace(/ & /g,", ").replace(/s*.$/,"").trim();
+async function checkProgram(){
+  const out=$("#pg-out"),btn=$("#pg-check");
+  out.textContent="Bezig…";btn.disabled=true;
+  try{
+    let rows;
+    try{const r=await fetch("programma.json",{cache:"no-store"});if(!r.ok)throw 0;rows=await r.json()}
+    catch(e){out.textContent="Geen verbinding of het programma is nog niet opgehaald. Probeer het later opnieuw.";return}
+    const L=new Map(rows.map(r=>[r[3],r])),A=new Map(ALL.map(r=>[r[3],r]));
+    const mine=new Set();
+    DAYS.forEach((d,di)=>d.slots.forEach((sl,i)=>{const j=chosen(di,i);if(j>=0&&sl[2][j])mine.add(+sl[2][j][5])}));
+    const dn=["di","wo"],lbl=r=>dn[r[0]]+" "+r[1]+" · "+r[4]+" · ";
+    const items=[];
+    const add=(id,txt)=>items.push((mine.has(id)?"<b>★ In jouw dag:</b> ":"")+esc(txt));
+    const f=["dag","start","einde","","zaal","spreker","titel"];
+    for(const [id,a] of A){
+      const l=L.get(id);
+      if(!l){add(id,"Vervallen: "+a[6]+" ("+a[5]+")");continue}
+      const d=[];
+      if(a[0]!==l[0]||a[1]!==l[1]||a[2]!==l[2])d.push("tijd "+dn[a[0]]+" "+a[1]+"–"+a[2]+" → "+dn[l[0]]+" "+l[1]+"–"+l[2]);
+      if(a[4]!==l[4])d.push("zaal "+a[4]+" → "+l[4]);
+      if(pgNorm(a[5])!==pgNorm(l[5]))d.push("spreker "+a[5]+" → "+l[5]);
+      if(pgNorm(a[6])!==pgNorm(l[6]))d.push("titel → "+l[6]);
+      if(d.length)add(id,l[6]+": "+d.join("; "));
+    }
+    for(const [id,l] of L)if(!A.has(id))items.push(esc("Nieuw: "+l[6]+" ("+l[5]+", "+lbl(l).slice(0,-3)+")"));
+    out.innerHTML=items.length
+      ?"<b>"+items.length+" verschil"+(items.length>1?"len":"")+" met techorama.nl:</b><ul style='margin:6px 0 0;padding-left:18px;display:grid;gap:4px'>"+items.map(x=>"<li>"+x+"</li>").join("")+"</ul><div style='margin-top:6px'>Werk de app bij door hem af te sluiten en opnieuw te openen; staat het daarna nog zo, dan is de app zelf nog niet aangepast.</div>"
+      :"✓ Alles klopt: "+L.size+" sessies, tijden, zalen, titels en sprekers zijn gelijk aan techorama.nl.";
+  }finally{btn.disabled=false}
+}
 function menu(open){
   $("#menu").hidden=!open;$("#menu-btn").setAttribute("aria-expanded",open);
   document.body.style.overflow=open?"hidden":"";
@@ -592,6 +629,7 @@ document.addEventListener("click",ev=>{
   if(ev.target.id==="to-empty"){
     if(confirm("Mijn dag leegmaken en zonder het advies van de maker verder?\n\nJe kiest daarna zelf uit alle sessies. Reserves en notities blijven staan.")){mode="empty";store.set("tr26-mode",mode);picks={};store.set("tr26-picks",picks);renderSlots();renderNow();toast("Mijn dag is leeg")}
     return}
+  if(ev.target.id==="pg-check"){checkProgram();return}
   if(ev.target.id==="ics"){exportIcs();return}
   if(ev.target.id==="notes-share"){shareNotes();return}
   if(ev.target.id==="rm-do"){saveBackup();return}
