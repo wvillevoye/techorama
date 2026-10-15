@@ -49,9 +49,9 @@ button{font:inherit;color:inherit}
 
 /* header */
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:14px 10px;border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-.brand h1{font-family:var(--f-display);font-weight:800;font-size:1.45rem;letter-spacing:-.01em;margin:0;line-height:1.1}
-.brand .where{font-family:var(--f-mono);font-size:.72rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand h1{white-space:nowrap;font-family:var(--f-display);font-weight:800;font-size:1.45rem;letter-spacing:-.01em;margin:0;line-height:1.1}
+.brand .where{font-family:var(--f-mono);font-size:.68rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-left:auto;text-align:right;line-height:1.2}
 .days{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:12px;background:var(--sunk);padding:4px;border-radius:12px}
 .days button{border:0;background:transparent;border-radius:9px;padding:9px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px}
 .days button b{font-family:var(--f-display);font-weight:600;font-size:1rem}
@@ -169,7 +169,11 @@ button{font:inherit;color:inherit}
 .gap{margin-left:62px;font-size:.78rem;color:var(--muted);padding:2px 0 2px 12px;border-left:2px dotted var(--line)}
 .gap.walk{color:var(--warn);border-left-color:var(--warn);font-weight:700}
 
-.foot{margin-top:22px;display:grid;gap:10px;font-size:.85rem;color:var(--muted)}
+.foot{position:fixed;inset:0;z-index:30;overflow-y:auto;background:var(--bg);padding:0 16px calc(40px + env(safe-area-inset-bottom,0px));font-size:.85rem;color:var(--muted)}
+.foot .menuwrap{max-width:560px;margin:0 auto;display:grid;gap:10px}
+.menubar{position:sticky;top:0;z-index:1;background:var(--bg);display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top,0px)) 0 10px;margin-bottom:2px;border-bottom:1px solid var(--line)}
+.menubar h2{margin:0;font-family:var(--f-display);font-weight:800;font-size:1.3rem;color:var(--ink)}
+.burger{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:10px;width:42px;height:38px;font-size:1.3rem;line-height:1;cursor:pointer;color:var(--ink)}
 .foot .box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
 .foot h4{margin:0 0 4px;font-family:var(--f-display);font-weight:600;font-size:.95rem;color:var(--ink)}
 .foot button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -187,6 +191,7 @@ button{font:inherit;color:inherit}
     <div class="brand">
       <h1>Techorama 2026</h1>
       <span class="where">Utrecht · 27–28 okt</span>
+      <button class="burger" id="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu">☰</button>
     </div>
     <div class="days" role="tablist" aria-label="Dag">
       <button id="tab-di" role="tab" data-day="0"><b>Dinsdag</b><span>27 oktober</span></button>
@@ -221,7 +226,9 @@ button{font:inherit;color:inherit}
   <main class="slots" id="slots"></main>
   <main id="all" hidden></main>
 
-  <footer class="foot">
+  <footer class="foot" id="menu" hidden>
+    <div class="menuwrap">
+    <div class="menubar"><h2>Menu</h2><button class="burger" id="menu-close" type="button" aria-label="Sluit menu">✕</button></div>
     <div class="box">
       <h4>Kiezen</h4>
       <span id="kiezen-tekst"></span>
@@ -271,6 +278,7 @@ button{font:inherit;color:inherit}
     <div class="box">
       Omschrijvingen zijn korte eigen samenvattingen (bij de sessies buiten het advies gebaseerd op de officiële abstracts); de volledige tekst staat op de sessiepagina. Zalen met (JB) liggen mogelijk in een ander deel van het gebouw dan Room 7–13 (gebaseerd op vorige edities); kijk ter plekke hoe ver de looproute is. Het programma kan nog wijzigen; controleer de week ervoor techorama.nl.
     </div>
+    </div>
   </footer>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -278,7 +286,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v17";
+const APP_VERSION="v18";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -549,7 +557,16 @@ document.addEventListener("input",ev=>{
   store.set("tr26-notes",notes);
   const b=ta.closest(".pick").querySelector(".notebtn"); if(b){b.classList.toggle("has",!!notes[id]);b.textContent="✎ "+(notes[id]?"Notitie ●":"Notitie")}
 });
+function menu(open){
+  $("#menu").hidden=!open;$("#menu-btn").setAttribute("aria-expanded",open);
+  document.body.style.overflow=open?"hidden":"";
+  if(open)$("#menu").scrollTop=0;
+}
+document.addEventListener("keydown",ev=>{if(ev.key==="Escape"&&!$("#menu").hidden)menu(false)});
 document.addEventListener("click",ev=>{
+  if(ev.target.closest("#menu-btn")){menu(true);return}
+  if(ev.target.closest("#menu-close")){menu(false);return}
+  if(ev.target.id==="reset"||ev.target.id==="to-empty")setTimeout(()=>menu(false));
   if(ev.target.closest("#now")){jumpNow();return}
   const vw=ev.target.closest(".views button");
   if(vw){view=vw.dataset.view;store.set("tr26-view",view);renderSlots();window.scrollTo({top:0});return}
