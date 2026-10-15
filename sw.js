@@ -1,5 +1,5 @@
 // Verhoog VERSION bij elke wijziging van index.html (en zet APP_VERSION in index.html gelijk), zodat telefoons de nieuwe versie ophalen.
-const VERSION = "v16";
+const VERSION = "v17";
 const CACHE = "techorama26-" + VERSION;
 const FONTS = "techorama26-fonts";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest",
@@ -22,7 +22,8 @@ self.addEventListener("fetch", e => {
 
   // Eigen bestanden: direct uit de cache (werkt offline), op de achtergrond verversen.
   if (url.origin === self.location.origin) {
-    const key = req.mode === "navigate" ? "./index.html" : req;
+    // Navigatie valt terug op de app-shell, behalve naar het spelletje (spel.html).
+    const key = req.mode === "navigate" && !url.pathname.endsWith("/spel.html") ? "./index.html" : req;
     e.respondWith(caches.open(CACHE).then(async c => {
       const hit = await c.match(key);
       const net = fetch(req).then(r => { if (r.ok) c.put(key, r.clone()); return r; }).catch(() => hit);

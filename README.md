@@ -29,6 +29,7 @@ Open de app daarna één keer met internet. Vanaf dan werkt hij ook zonder wifi 
 - **Weergave:** onderaan kies je automatisch, licht of donker.
 - **Versie:** onderaan staat het versienummer en de knop *Controleer op update*.
 - **Terug naar advies:** onderaan zet je alle keuzes terug naar het beginadvies. Reserves en notities blijven staan.
+- **Saaie sessie?** Onderaan staat een link naar een spelletje (`spel.html`, een 3D-hardlooprace met een rollende rots). Het laadt zijn 3D-bibliotheek online, dus het werkt alleen met internet.
 
 ## Demo-modus
 

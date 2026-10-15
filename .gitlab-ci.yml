@@ -4,7 +4,7 @@ pages:
   stage: deploy
   script:
     - mkdir -p public
-    - cp index.html manifest.webmanifest sw.js public/
+    - cp index.html spel.html manifest.webmanifest sw.js public/
     - cp -r icons public/
   artifacts:
     paths:
