@@ -22,14 +22,16 @@ Open de app daarna één keer met internet. Vanaf dan werkt hij ook zonder wifi 
 - **Alle sessies:** het hele programma. Tik op een sessie om die aan te vinken als jouw keuze. Je kunt zoeken op titel of spreker en filteren op track.
 - **Omschrijving:** tik op *Waarom deze sessie* voor meer info of de link naar de officiële sessiepagina.
 - **Reserve (☆):** tik op het sterretje bij een sessie om die als reserve te markeren. Reserves staan onder "Ook in dit slot", zodat je snel kunt wisselen. In "Alle sessies" filter je ze met *★ Reserve*.
-- **Notities (✎):** typ aantekeningen of vragen bij de sessie die je volgt. Ze worden automatisch bewaard. Boven het veld staat de dag, tijd, zaal, titel en spreker. Onderaan deel of kopieer je al je notities als tekst (*Deel mijn notities*), op volgorde van tijd en met dezelfde kop per sessie.
-- **Naar je agenda:** onderaan exporteer je je gekozen sessies als `.ics`-bestand voor Outlook of Google Agenda, met zaal, notities en een herinnering 10 minuten van tevoren. Op Android opent het deelmenu; kies je agenda-app of sla het bestand op en open het.
-- **Back-up en overzetten:** onderaan bewaar je je eigen keuzes, reserves en notities als bestand (*Back-up opslaan*) en zet je ze weer terug (*Back-up terugzetten*). Met *Overzet-link delen* stuur je ze als link naar jezelf, bijvoorbeeld via Teams of mail; openen op een andere telefoon zet alles daar klaar. De link bevat je notities, deel hem dus alleen met jezelf. Op iPhone heeft de app op het beginscherm eigen opslag: open de link daar via de app, of zet een back-upbestand terug.
+- **Menu (☰):** rechtsboven opent het menu met alles wat niet bij een sessie hoort: kiezen, agenda, notities, back-up, programma controleren, weergave, spel, versie, installeren en uitleg.
+- **Notities (✎):** typ aantekeningen of vragen bij de sessie die je volgt. Ze worden automatisch bewaard. Boven het veld staat de dag, tijd, zaal, titel en spreker. In het menu deel of kopieer je al je notities als tekst (*Deel mijn notities*), op volgorde van tijd en met dezelfde kop per sessie.
+- **Naar je agenda:** in het menu exporteer je je gekozen sessies als `.ics`-bestand voor Outlook of Google Agenda, met zaal, notities en een herinnering 10 minuten van tevoren. Op Android opent het deelmenu; kies je agenda-app of sla het bestand op en open het.
+- **Back-up en overzetten:** in het menu bewaar je je eigen keuzes, reserves en notities als bestand (*Back-up opslaan*) en zet je ze weer terug (*Back-up terugzetten*). Met *Overzet-link delen* stuur je ze als link naar jezelf, bijvoorbeeld via Teams of mail; openen op een andere telefoon zet alles daar klaar. De link bevat je notities, deel hem dus alleen met jezelf. Op iPhone heeft de app op het beginscherm eigen opslag: open de link daar via de app, of zet een back-upbestand terug.
 - **Herinnering:** heb je keuzes of notities die al meer dan 24 uur niet zijn geback-upt (of sinds de laatste back-up zijn veranderd), dan verschijnt bovenaan een balk met *Back-up maken* en *Later*. *Later* verbergt de balk 12 uur.
-- **Weergave:** onderaan kies je automatisch, licht of donker.
-- **Versie:** onderaan staat het versienummer en de knop *Controleer op update*.
-- **Terug naar advies:** onderaan zet je alle keuzes terug naar het beginadvies. Reserves en notities blijven staan.
-- **Saaie sessie?** Onderaan staat een link naar een spelletje (`spel.html`, een 3D-hardlooprace met een rollende rots). Het laadt zijn 3D-bibliotheek online, dus het werkt alleen met internet.
+- **Programma controleren:** in het menu vergelijkt *Controleer programma* de sessies in de app met het programma op techorama.nl en laat zien wat anders is. Dat programma wordt elk uur bijgewerkt via GitHub Actions (`programma.json`).
+- **Weergave:** in het menu kies je automatisch, licht of donker.
+- **Versie:** in het menu staat het versienummer en de knop *Controleer op update*.
+- **Terug naar advies:** in het menu zet je alle keuzes terug naar het beginadvies. Reserves en notities blijven staan.
+- **Saaie sessie?** In het menu staat een link naar een spelletje (`spel.html`, een 3D-hardlooprace met een rollende rots). Het laadt zijn 3D-bibliotheek online, dus het werkt alleen met internet.
 
 ## Demo-modus
 
@@ -54,7 +56,7 @@ Als je alleen het stuk na de `#` in de adresbalk aanpast, springt de app direct 
 
 ## Goed om te weten
 
-- **Nieuw of bestaand:** wie de app voor het eerst opent, begint met een lege dag. Wie de app al had, houdt de weergave met het advies van de maker en al zijn keuzes, reserves en notities; een update overschrijft niets. Die groep kan onderaan met *Begin met een lege dag* zelf overstappen (reserves en notities blijven dan staan).
+- **Nieuw of bestaand:** wie de app voor het eerst opent, begint met een lege dag. Wie de app al had, houdt de weergave met het advies van de maker en al zijn keuzes, reserves en notities; een update overschrijft niets. Die groep kan in het menu met *Begin met een lege dag* zelf overstappen (reserves en notities blijven dan staan).
 
 - Voor sessies zonder eigen omschrijving staat alleen een link naar techorama.nl.
 - Je keuzes worden alleen op je eigen telefoon bewaard.
