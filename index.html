@@ -179,7 +179,7 @@ button{font:inherit;color:inherit}
 .foot button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .foot button{border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:700;font-size:.85rem}
 .foot .gamelink{display:inline-block;border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:7px 12px;font-weight:700;font-size:.85rem;color:var(--ink);text-decoration:none}
-.update{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:536px;margin:0 auto;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--accent);color:var(--accent-ink);padding:10px 12px 10px 16px;border-radius:12px;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.update{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:536px;margin:0 auto;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--accent);color:var(--accent-ink);padding:10px 12px 10px 16px;border-radius:12px;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.3)}
 .update button{border:0;background:var(--accent-ink);color:var(--accent);border-radius:8px;padding:8px 14px;font-weight:800;cursor:pointer}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:10px;font-size:.88rem;z-index:10;box-shadow:0 4px 18px rgba(0,0,0,.25)}
 @media (prefers-reduced-motion:no-preference){.card,.pick{transition:background .2s,border-color .2s}}
@@ -292,7 +292,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v22";
+const APP_VERSION="v23";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -568,6 +568,13 @@ async function checkProgram(){
   const out=$("#pg-out"),btn=$("#pg-check");
   out.textContent="Bezig…";btn.disabled=true;
   try{
+    try{
+      const v=(await (await fetch("sw.js?vers="+Date.now(),{cache:"no-store"})).text()).match(/VERSION = "(v[0-9]+)"/);
+      if(v&&v[1]!==APP_VERSION){
+        out.innerHTML="<b>Je app is verouderd</b> ("+APP_VERSION+", nieuwste is "+v[1]+"), daarom zie je verschillen met techorama.nl. Werk eerst bij; je keuzes en notities blijven bewaard.<div style='margin-top:8px'><button id='pg-upd' type='button'>Nu bijwerken</button></div>";
+        return;
+      }
+    }catch(e){}
     let rows;
     try{const r=await fetch("programma.json",{cache:"no-store"});if(!r.ok)throw 0;rows=await r.json()}
     catch(e){out.textContent="Geen verbinding of het programma is nog niet opgehaald. Probeer het later opnieuw.";return}
@@ -599,9 +606,18 @@ async function checkProgram(){
     })));
     for(const [id,l] of L)if(!A.has(id))items.push(esc("Nieuw: "+l[6]+" ("+l[5]+", "+lbl(l).slice(0,-3)+")"));
     out.innerHTML=items.length
-      ?"<b>"+items.length+" verschil"+(items.length>1?"len":"")+" met techorama.nl:</b><ul style='margin:6px 0 0;padding-left:18px;display:grid;gap:4px'>"+items.map(x=>"<li>"+x+"</li>").join("")+"</ul><div style='margin-top:6px'>Werk de app bij door hem af te sluiten en opnieuw te openen; staat het daarna nog zo, dan is de app zelf nog niet aangepast.</div>"
+      ?"<b>"+items.length+" verschil"+(items.length>1?"len":"")+" met techorama.nl:</b><ul style='margin:6px 0 0;padding-left:18px;display:grid;gap:4px'>"+items.map(x=>"<li>"+x+"</li>").join("")+"</ul><div style='margin-top:6px'>Je app is wel de nieuwste versie; deze verschillen moeten dus nog in de app zelf worden aangepast.</div>"
       :"✓ Alles klopt: "+L.size+" sessies, tijden, zalen, titels en sprekers zijn gelijk aan techorama.nl.";
   }finally{btn.disabled=false}
+}
+async function forceUpdate(){
+  $("#pg-out").textContent="Bijwerken…";
+  try{
+    const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();
+    if(reg)await reg.unregister();
+    for(const k of await caches.keys())await caches.delete(k);
+  }catch(e){}
+  location.reload();
 }
 function menu(open){
   $("#menu").hidden=!open;$("#menu-btn").setAttribute("aria-expanded",open);
@@ -639,6 +655,7 @@ document.addEventListener("click",ev=>{
     if(confirm("Mijn dag leegmaken en zonder het advies van de maker verder?\n\nJe kiest daarna zelf uit alle sessies. Reserves en notities blijven staan.")){mode="empty";store.set("tr26-mode",mode);picks={};store.set("tr26-picks",picks);renderSlots();renderNow();toast("Mijn dag is leeg")}
     return}
   if(ev.target.id==="pg-check"){checkProgram();return}
+  if(ev.target.id==="pg-upd"){forceUpdate();return}
   if(ev.target.id==="ics"){exportIcs();return}
   if(ev.target.id==="notes-share"){shareNotes();return}
   if(ev.target.id==="rm-do"){saveBackup();return}
