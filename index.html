@@ -292,7 +292,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v21";
+const APP_VERSION="v22";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -588,6 +588,15 @@ async function checkProgram(){
       if(pgNorm(a[6])!==pgNorm(l[6]))d.push("titel → "+l[6]);
       if(d.length)add(id,l[6]+": "+d.join("; "));
     }
+    DAYS.forEach((d,di)=>d.slots.forEach(sl=>sl[2].slice(0,sl[3]).forEach(o=>{
+      const id=+o[5],l=L.get(id);
+      if(!l){if(A.has(id))return;add(id,"Vervallen: "+o[2]+" ("+o[1]+")");return}
+      const a=A.get(id);if(a&&(a[0]!==l[0]||a[1]!==l[1]||a[4]!==l[4]))return;   // al gemeld via de lijst
+      const x=[];
+      if(l[0]!==di||l[1]!==sl[0])x.push("tijd "+dn[di]+" "+sl[0]+" → "+dn[l[0]]+" "+l[1]);
+      if(l[4]!==o[0])x.push("zaal "+o[0]+" → "+l[4]);
+      if(x.length)add(id,"Jouw dagselectie, "+l[6]+": "+x.join("; "));
+    })));
     for(const [id,l] of L)if(!A.has(id))items.push(esc("Nieuw: "+l[6]+" ("+l[5]+", "+lbl(l).slice(0,-3)+")"));
     out.innerHTML=items.length
       ?"<b>"+items.length+" verschil"+(items.length>1?"len":"")+" met techorama.nl:</b><ul style='margin:6px 0 0;padding-left:18px;display:grid;gap:4px'>"+items.map(x=>"<li>"+x+"</li>").join("")+"</ul><div style='margin-top:6px'>Werk de app bij door hem af te sluiten en opnieuw te openen; staat het daarna nog zo, dan is de app zelf nog niet aangepast.</div>"
