@@ -1,9 +1,9 @@
 // Verhoog VERSION bij elke wijziging van index.html (en zet APP_VERSION in index.html gelijk), zodat telefoons de nieuwe versie ophalen.
-const VERSION = "v32";
+const VERSION = "v33";
 const CACHE = "techorama26-" + VERSION;
 const FONTS = "techorama26-fonts";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest",
-  "./icons/icon-192.png", "./icons/icon-512.png", "./icons/maskable-512.png"];
+  "./icons/icon-192.png", "./icons/icon-512.png", "./icons/maskable-512.png", "./qr.png"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting()));

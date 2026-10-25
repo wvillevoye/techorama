@@ -301,6 +301,13 @@ button{font:inherit;color:inherit}
     <div class="box">
       Omschrijvingen zijn korte eigen samenvattingen (bij de sessies buiten het advies gebaseerd op de officiële abstracts); de volledige tekst staat op de sessiepagina. Zalen met (JB) liggen mogelijk in een ander deel van het gebouw dan Room 7–13 (gebaseerd op vorige edities); kijk ter plekke hoe ver de looproute is. Het programma kan nog wijzigen; controleer de week ervoor techorama.nl.
     </div>
+    <div class="box">
+      <h4>Deel de app</h4>
+      Iemand anders ook Techorama-app laten gebruiken? Laat deze QR-code scannen met de camera van de telefoon.
+      <div style="margin-top:10px;text-align:center"><img src="qr.png" alt="QR-code naar de app" width="220" height="220" style="background:#fff;border-radius:10px"></div>
+      <div style="margin-top:8px;text-align:center;word-break:break-all">https://wvillevoye.github.io/techorama/</div>
+      <div style="margin-top:8px;text-align:center"><button id="app-share" type="button">Deel de link</button></div>
+    </div>
     </div>
   </footer>
 </div>
@@ -309,7 +316,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v32";
+const APP_VERSION="v33";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -716,6 +723,7 @@ document.addEventListener("click",ev=>{
   if(ev.target.id==="pg-check"){checkProgram();return}
   if(ev.target.id==="pg-apply"){applyProgram();return}
   if(ev.target.id==="pg-upd"){forceUpdate();return}
+  if(ev.target.id==="app-share"){const d={title:"Techorama 2026",text:"Programma-app voor Techorama",url:"https://wvillevoye.github.io/techorama/"};(navigator.share?navigator.share(d):navigator.clipboard.writeText(d.url).then(()=>toast("Link gekopieerd"))).catch(()=>{});return}
   if(ev.target.id==="ph-all"){sharePhotos();return}
   if(ev.target.id==="ics"){exportIcs();return}
   if(ev.target.id==="notes-share"){shareNotes();return}

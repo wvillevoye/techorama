@@ -31,6 +31,7 @@ Open de app daarna één keer met internet. Vanaf dan werkt hij ook zonder wifi 
 - **Programma controleren:** in het menu vergelijkt *Controleer programma* de sessies in de app met het programma op techorama.nl en laat zien wat anders is. Met *Pas het programma in de app aan* neemt de app die wijzigingen direct over (tijden, zalen, titels, sprekers, nieuwe en vervallen sessies); je keuzes, reserves en notities blijven bewaard. Dat programma wordt elk uur bijgewerkt via GitHub Actions (`programma.json`).
 - **Weergave:** in het menu kies je automatisch, licht of donker.
 - **Versie:** in het menu staat het versienummer en de knop *Controleer op update*.
+- **Deel de app:** onderaan het menu staat de QR-code met de link naar de app, zodat iemand anders hem met de camera kan scannen, plus een knop *Deel de link*.
 - **Terug naar advies:** in het menu zet je alle keuzes terug naar het beginadvies. Reserves en notities blijven staan.
 - **Saaie sessie?** In het menu staat een link naar een spelletje (`spel.html`, een 3D-hardlooprace met een rollende rots). Het laadt zijn 3D-bibliotheek online, dus het werkt alleen met internet.
 
