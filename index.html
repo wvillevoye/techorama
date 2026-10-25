@@ -272,6 +272,7 @@ button{font:inherit;color:inherit}
     </div>
     <div class="box">
       <h4>Mijn foto's</h4>
+      <div style="margin-bottom:6px"><button id="ph-all" type="button">Alle foto's opslaan / delen</button></div>
       <div id="ph-list">Nog geen foto's. Maak ze bij een sessie in Mijn dag met de knop Foto.</div>
     </div>
     <div class="box">
@@ -306,7 +307,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v29";
+const APP_VERSION="v30";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -713,6 +714,7 @@ document.addEventListener("click",ev=>{
   if(ev.target.id==="pg-check"){checkProgram();return}
   if(ev.target.id==="pg-apply"){applyProgram();return}
   if(ev.target.id==="pg-upd"){forceUpdate();return}
+  if(ev.target.id==="ph-all"){sharePhotos();return}
   if(ev.target.id==="ics"){exportIcs();return}
   if(ev.target.id==="notes-share"){shareNotes();return}
   if(ev.target.id==="rm-do"){saveBackup();return}
@@ -914,6 +916,18 @@ function lightbox(id,n){
   const p=(photos[id]||[]).find(x=>x.n===n);if(!p)return;
   lb.dataset.id=id;lb.dataset.n=n;lb.hidden=false;
   lb.innerHTML='<img src="'+p.url+'" alt="Foto"><div class="lbbar"><button data-lb="x" type="button">Sluiten</button><button data-lb="s" type="button">Opslaan / delen</button><button data-lb="d" type="button">Verwijderen</button></div>';
+}
+async function sharePhotos(){
+  const rows=ALL.filter(a=>photos[a[3]]).sort((a,b)=>a[0]-b[0]||a[1].localeCompare(b[1]));
+  if(!rows.length){toast("Nog geen foto's");return}
+  toast("Foto's klaarzetten…");
+  const files=[];
+  try{for(const a of rows){const slug=a[6].toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40);
+    for(const [i,p] of photos[a[3]].entries())files.push(new File([await (await fetch(p.url)).blob()],["di","wo"][a[0]]+"-"+a[1].replace(":","")+"-"+slug+"-"+(i+1)+".jpg",{type:"image/jpeg"}))}
+    if(navigator.canShare&&navigator.canShare({files})){await navigator.share({files});return}
+  }catch(e){if(e.name==="AbortError")return}
+  for(const f of files){const a=document.createElement("a");a.href=URL.createObjectURL(f);a.download=f.name;document.body.appendChild(a);a.click();a.remove();await new Promise(r=>setTimeout(r,300))}
+  toast(files.length+" foto's gedownload");
 }
 async function sharePhoto(){
   const lb=$("#lb"),p=photos[lb.dataset.id].find(x=>x.n===+lb.dataset.n);
