@@ -148,8 +148,9 @@ button{font:inherit;color:inherit}
 .thumbs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .thumb{border:0;padding:0;width:64px;height:64px;border-radius:8px;overflow:hidden;background:var(--surface);cursor:pointer}
 .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-#lb{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center}
+#lb,#cam{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center}
 #lb[hidden]{display:none}
+#cam video{max-width:100%;max-height:calc(100% - 76px)}
 #lb img{max-width:100%;max-height:calc(100% - 76px);object-fit:contain}
 .lbbar{display:flex;gap:10px;padding:14px calc(14px + env(safe-area-inset-bottom,0px))}
 .notehead{margin-top:8px;font-size:.8rem;line-height:1.35;color:var(--muted);border-left:3px solid var(--tc);padding-left:8px}
@@ -305,7 +306,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v27";
+const APP_VERSION="v28";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -692,7 +693,9 @@ document.addEventListener("click",ev=>{
   const tab=ev.target.closest(".days button");
   if(tab){day=+tab.dataset.day;store.set("tr26-day",day);renderSlots();window.scrollTo({top:0});return}
   const pb=ev.target.closest(".photobtn");
-  if(pb){if(!pdb){toast("Foto's zijn hier niet beschikbaar");return}phTarget=pb.dataset.id;$(pb.classList.contains("gal")?"#ph-file":"#ph-cam").click();return}
+  if(pb){if(!pdb){toast("Foto's zijn hier niet beschikbaar");return}phTarget=pb.dataset.id;if(pb.classList.contains("gal"))$("#ph-file").click();else camera();return}
+  const cb=ev.target.closest("[data-cam]");
+  if(cb){if(cb.dataset.cam==="s")snap();else{$("#cam").stop();const y=scrollY;renderSlots();window.scrollTo({top:y})}return}
   const th2=ev.target.closest(".thumb");
   if(th2){lightbox(th2.dataset.id,+th2.dataset.n);return}
   const lbb=ev.target.closest("[data-lb]");
@@ -878,12 +881,30 @@ async function shrink(f){
   c.getContext("2d").drawImage(b,0,0,c.width,c.height);
   return new Promise(r=>c.toBlob(r,"image/jpeg",.82));
 }
+async function savePhoto(sid,blob){
+  const key=await pdbReq("readwrite",s=>s.add({sid,t:Date.now(),blob}));
+  (photos[sid]=photos[sid]||[]).push({n:key,url:URL.createObjectURL(blob)});
+}
+// Eigen camerascherm (getUserMedia); valt terug op de camera-app van de telefoon als dat niet lukt.
+async function camera(){
+  let st;
+  try{st=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:2560}},audio:false})}catch(e){$("#ph-cam").click();return}
+  const c=document.createElement("div");c.id="cam";c.dataset.id=phTarget;
+  c.innerHTML='<video playsinline autoplay muted></video><div class="lbbar"><button data-cam="x" type="button">Klaar</button><button data-cam="s" type="button">📷 Foto nemen</button></div>';
+  c.querySelector("video").srcObject=st;c.stop=()=>{st.getTracks().forEach(t=>t.stop());c.remove()};
+  document.body.appendChild(c);
+}
+async function snap(){
+  const c=$("#cam"),v=c.querySelector("video");if(!v.videoWidth)return;
+  const k=Math.min(1,1600/Math.max(v.videoWidth,v.videoHeight)),cv=document.createElement("canvas");
+  cv.width=Math.round(v.videoWidth*k);cv.height=Math.round(v.videoHeight*k);cv.getContext("2d").drawImage(v,0,0,cv.width,cv.height);
+  try{await savePhoto(c.dataset.id,await new Promise(r=>cv.toBlob(r,"image/jpeg",.82)));renderSlots();toast("Foto bewaard")}catch(e){toast("Foto bewaren mislukt")}
+}
 for(const el of [$("#ph-file"),$("#ph-cam")])el.addEventListener("change",async ev=>{
   const files=[...ev.target.files],sid=phTarget;ev.target.value="";
   let n=0;
   for(const f of files){try{
-    const blob=await shrink(f),key=await pdbReq("readwrite",s=>s.add({sid,t:Date.now(),blob}));
-    (photos[sid]=photos[sid]||[]).push({n:key,url:URL.createObjectURL(blob)});n++;
+    await savePhoto(sid,await shrink(f));n++;
   }catch(e){toast("Foto bewaren mislukt")}}
   if(n){const y=scrollY;renderSlots();window.scrollTo({top:y});toast(n>1?n+" foto's bewaard":"Foto bewaard");
     try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}}
