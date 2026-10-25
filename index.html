@@ -306,7 +306,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v28";
+const APP_VERSION="v29";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -699,7 +699,7 @@ document.addEventListener("click",ev=>{
   const th2=ev.target.closest(".thumb");
   if(th2){lightbox(th2.dataset.id,+th2.dataset.n);return}
   const lbb=ev.target.closest("[data-lb]");
-  if(lbb){if(lbb.dataset.lb==="d")delPhoto();else $("#lb").hidden=true;return}
+  if(lbb){if(lbb.dataset.lb==="d")delPhoto();else if(lbb.dataset.lb==="s")sharePhoto();else $("#lb").hidden=true;return}
   const more=ev.target.closest(".more:not(.notebtn):not(.unpick):not(.photobtn)");
   if(more){open[more.dataset.k]=!open[more.dataset.k];renderSlots();return}
   const alt=ev.target.closest(".alt");
@@ -913,7 +913,15 @@ function lightbox(id,n){
   let lb=$("#lb");if(!lb){lb=document.createElement("div");lb.id="lb";document.body.appendChild(lb)}
   const p=(photos[id]||[]).find(x=>x.n===n);if(!p)return;
   lb.dataset.id=id;lb.dataset.n=n;lb.hidden=false;
-  lb.innerHTML='<img src="'+p.url+'" alt="Foto"><div class="lbbar"><button data-lb="x" type="button">Sluiten</button><button data-lb="d" type="button">Verwijderen</button></div>';
+  lb.innerHTML='<img src="'+p.url+'" alt="Foto"><div class="lbbar"><button data-lb="x" type="button">Sluiten</button><button data-lb="s" type="button">Opslaan / delen</button><button data-lb="d" type="button">Verwijderen</button></div>';
+}
+async function sharePhoto(){
+  const lb=$("#lb"),p=photos[lb.dataset.id].find(x=>x.n===+lb.dataset.n);
+  try{
+    const f=new File([await (await fetch(p.url)).blob()],"techorama-"+lb.dataset.id+"-"+p.n+".jpg",{type:"image/jpeg"});
+    if(navigator.canShare&&navigator.canShare({files:[f]}))await navigator.share({files:[f]});
+    else{const a=document.createElement("a");a.href=p.url;a.download=f.name;document.body.appendChild(a);a.click();a.remove();toast("Foto opgeslagen in Downloads")}
+  }catch(e){if(e.name!=="AbortError")toast("Delen mislukt")}
 }
 async function delPhoto(){
   const lb=$("#lb"),id=lb.dataset.id,n=+lb.dataset.n;
