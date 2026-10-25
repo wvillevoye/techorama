@@ -292,7 +292,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v23";
+const APP_VERSION="v24";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -359,6 +359,17 @@ const DESC={"1352040":"Vijf lessen over missiekritieke systemen uit de praktijk 
 const TRK={"AI & Agents":"AI","Architecture & Security":"SEC","Dev":"DEV","Data":"DATA","Leadership & Productivity":"LEAD","Cloud & DevOps":"OPS"};
 const LV={100:"I",200:"M",300:"A"};
 const roomKey=r=>(r.includes("(JB)")?100:0)+(parseInt(r.replace(/D+/g,""))||0);
+// Nieuwste programma, door de gebruiker toegepast via "Controleer programma": vervangt ALL en past de adviessessies aan.
+let LIVE=null;try{LIVE=JSON.parse(localStorage.getItem("tr26-live"))}catch(e){}
+if(Array.isArray(LIVE)&&LIVE.length>50){
+  const lv=new Map(ALL.map(a=>[a[3],a[8]])),L=new Map(LIVE.map(r=>[r[3],r]));
+  ALL.splice(0,ALL.length,...LIVE.map(r=>[...r,lv.get(r[3])||200]));
+  const adv=DAYS.flatMap(d=>d.slots.flatMap(sl=>sl[2]));
+  DAYS.forEach(d=>d.slots=[]);
+  for(const l of LIVE){const sl=DAYS[l[0]].slots;if(!sl.some(x=>x[0]===l[1]))sl.push([l[1],l[2],[]])}
+  DAYS.forEach(d=>d.slots.sort((a,b)=>a[0].localeCompare(b[0])));
+  for(const o of adv){const l=L.get(+o[5]);if(!l)continue;o[0]=l[4];o[1]=l[5];o[2]=l[6];DAYS[l[0]].slots.find(x=>x[0]===l[1])[2].push(o)}
+}
 // Per slot: eerst het advies (index < sl[3]), daarna de overige sessies uit het hele programma.
 DAYS.forEach((d,di)=>d.slots.forEach(sl=>{
   const have=new Set(sl[2].map(o=>+o[5]));
@@ -380,6 +391,11 @@ function initMode(){
 }
 let mode=initMode();
 let picks=store.get("tr26-picks",{});
+{ // na "Toepassen": keuzes (slot-index) opnieuw koppelen aan de sessies via hun id, want slots kunnen verschoven zijn
+  const m=store.get("tr26-migrate",null);
+  if(m){picks={};DAYS.forEach((d,di)=>d.slots.forEach((sl,i)=>sl[2].forEach((o,j)=>{if(m[o[5]]&&!(mode==="advice"&&j===0))picks[di+"-"+i]=j})));
+    store.set("tr26-picks",picks);try{localStorage.removeItem("tr26-migrate")}catch(e){}}
+}
 let open={};
 let notes=store.get("tr26-notes",{});      // sessie-id -> tekst
 let maybe=store.get("tr26-maybe",{});      // sessie-id -> true (reserve)
@@ -564,6 +580,7 @@ document.addEventListener("input",ev=>{
   const b=ta.closest(".pick").querySelector(".notebtn"); if(b){b.classList.toggle("has",!!notes[id]);b.textContent="✎ "+(notes[id]?"Notitie ●":"Notitie")}
 });
 const pgNorm=s=>String(s).replace(/[’‘]/g,"'").replace(/^"|"$/g,"").replace(/ & /g,", ").replace(/s*.$/,"").trim();
+let pgRows=null;
 async function checkProgram(){
   const out=$("#pg-out"),btn=$("#pg-check");
   out.textContent="Bezig…";btn.disabled=true;
@@ -576,7 +593,7 @@ async function checkProgram(){
       }
     }catch(e){}
     let rows;
-    try{const r=await fetch("programma.json",{cache:"no-store"});if(!r.ok)throw 0;rows=await r.json()}
+    try{const r=await fetch("programma.json",{cache:"no-store"});if(!r.ok)throw 0;rows=await r.json();pgRows=rows}
     catch(e){out.textContent="Geen verbinding of het programma is nog niet opgehaald. Probeer het later opnieuw.";return}
     const L=new Map(rows.map(r=>[r[3],r])),A=new Map(ALL.map(r=>[r[3],r]));
     const mine=new Set();
@@ -606,9 +623,15 @@ async function checkProgram(){
     })));
     for(const [id,l] of L)if(!A.has(id))items.push(esc("Nieuw: "+l[6]+" ("+l[5]+", "+lbl(l).slice(0,-3)+")"));
     out.innerHTML=items.length
-      ?"<b>"+items.length+" verschil"+(items.length>1?"len":"")+" met techorama.nl:</b><ul style='margin:6px 0 0;padding-left:18px;display:grid;gap:4px'>"+items.map(x=>"<li>"+x+"</li>").join("")+"</ul><div style='margin-top:6px'>Je app is wel de nieuwste versie; deze verschillen moeten dus nog in de app zelf worden aangepast.</div>"
+      ?"<b>"+items.length+" verschil"+(items.length>1?"len":"")+" met techorama.nl:</b><ul style='margin:6px 0 0;padding-left:18px;display:grid;gap:4px'>"+items.map(x=>"<li>"+x+"</li>").join("")+"</ul><div style='margin-top:6px'><button id='pg-apply' type='button'>Pas het programma in de app aan</button><div style='margin-top:6px;font-size:.85em'>Je keuzes, reserves en notities blijven bewaard.</div></div>"
       :"✓ Alles klopt: "+L.size+" sessies, tijden, zalen, titels en sprekers zijn gelijk aan techorama.nl.";
   }finally{btn.disabled=false}
+}
+function applyProgram(){
+  const ids={};
+  for(const [k,j] of Object.entries(picks)){const [d,i]=k.split("-"),o=DAYS[d]&&DAYS[d].slots[i]&&DAYS[d].slots[i][2][j];if(o)ids[o[5]]=1}
+  store.set("tr26-migrate",ids);store.set("tr26-live",pgRows);
+  location.reload();
 }
 async function forceUpdate(){
   $("#pg-out").textContent="Bijwerken…";
@@ -655,6 +678,7 @@ document.addEventListener("click",ev=>{
     if(confirm("Mijn dag leegmaken en zonder het advies van de maker verder?\n\nJe kiest daarna zelf uit alle sessies. Reserves en notities blijven staan.")){mode="empty";store.set("tr26-mode",mode);picks={};store.set("tr26-picks",picks);renderSlots();renderNow();toast("Mijn dag is leeg")}
     return}
   if(ev.target.id==="pg-check"){checkProgram();return}
+  if(ev.target.id==="pg-apply"){applyProgram();return}
   if(ev.target.id==="pg-upd"){forceUpdate();return}
   if(ev.target.id==="ics"){exportIcs();return}
   if(ev.target.id==="notes-share"){shareNotes();return}
