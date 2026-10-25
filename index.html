@@ -145,6 +145,13 @@ button{font:inherit;color:inherit}
 .tools{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin-top:6px}
 .tools .more{margin-top:0}
 .tools .more.has{text-decoration:underline}
+.thumbs{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.thumb{border:0;padding:0;width:64px;height:64px;border-radius:8px;overflow:hidden;background:var(--surface);cursor:pointer}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+#lb{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.92);display:flex;flex-direction:column;align-items:center;justify-content:center}
+#lb[hidden]{display:none}
+#lb img{max-width:100%;max-height:calc(100% - 76px);object-fit:contain}
+.lbbar{display:flex;gap:10px;padding:14px calc(14px + env(safe-area-inset-bottom,0px))}
 .notehead{margin-top:8px;font-size:.8rem;line-height:1.35;color:var(--muted);border-left:3px solid var(--tc);padding-left:8px}
 .notehead b{color:var(--ink)}
 .note{width:100%;margin-top:8px;min-height:84px;font:inherit;font-size:.92rem;padding:9px 11px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);resize:vertical}
@@ -253,6 +260,7 @@ button{font:inherit;color:inherit}
         <button id="bk-link" type="button">Overzet-link delen</button>
       </div>
       <input type="file" id="bk-file" accept=".json,application/json" hidden>
+    <input type="file" id="ph-file" accept="image/*" multiple hidden>
     </div>
     <div class="box">
       <h4>Programma controleren</h4>
@@ -292,7 +300,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v24";
+const APP_VERSION="v25";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -399,6 +407,8 @@ let picks=store.get("tr26-picks",{});
 let open={};
 let notes=store.get("tr26-notes",{});      // sessie-id -> tekst
 let maybe=store.get("tr26-maybe",{});      // sessie-id -> true (reserve)
+const photos={};   // foto's: sessie-id -> [{n,url}]
+let pdb=null,phTarget=null;
 let nopen={};                              // slot-key -> notitieveld open
 const key=(d,i)=>d+"-"+i;
 const chosen=(d,i)=>picks[key(d,i)]??(mode==="advice"?0:-1);   // -1 = nog niets gekozen
@@ -452,9 +462,11 @@ function renderMine(){
           ${o[6]?`<p class="desc">${esc(o[6])}</p>`:""}
           <div class="tools">
             <button class="more" data-k="${k}" aria-expanded="${!!open[k]}">${open[k]?"Minder":advice&&o[7]?"Waarom deze sessie":"Meer info"}</button>
+            <button class="more photobtn ${(photos[o[5]]||[]).length?"has":""}" data-id="${o[5]}">📷 ${(photos[o[5]]||[]).length?"Foto's ("+photos[o[5]].length+")":"Foto"}</button>
             <button class="more notebtn ${notes[o[5]]?"has":""}" data-k="${k}" aria-expanded="${!!nopen[k]}">✎ ${notes[o[5]]?"Notitie ●":"Notitie"}</button>
             ${advice?"":`<button class="more unpick" data-k="${k}">✕ Uit mijn dag</button>`}
           </div>
+          ${(photos[o[5]]||[]).length?`<div class="thumbs">${photos[o[5]].map(p=>`<button class="thumb" data-id="${o[5]}" data-n="${p.n}" aria-label="Foto bekijken"><img src="${p.url}" alt=""></button>`).join("")}</div>`:""}
           ${nopen[k]?`<div class="notehead">✎ ${d.name} ${s}–${e} · ${esc(o[0])}<br><b>${esc(o[2])}</b> · ${esc(o[1])}</div><textarea class="note" data-id="${o[5]}" placeholder="Aantekeningen of vragen bij deze sessie" aria-label="Notitie">${esc(notes[o[5]]||"")}</textarea>`:""}
           ${open[k]?`<div class="info">${advice&&o[7]?`<p class="why"><b>Voor jou:</b> ${esc(o[7])}</p>`:""}<a href="${URL0+o[5]}" target="_blank" rel="noopener">Sessiepagina op techorama.nl ↗</a></div>`:""}
         </div>`:`<div class="emptyslot">Nog geen sessie gekozen</div>`;
@@ -667,7 +679,13 @@ document.addEventListener("click",ev=>{
   if(ma){view="all";fTrack="";fq="";$("#q").value="";store.set("tr26-view",view);renderSlots();const el=document.getElementById("a-"+ma.dataset.k);el&&el.scrollIntoView({block:"start"});return}
   const tab=ev.target.closest(".days button");
   if(tab){day=+tab.dataset.day;store.set("tr26-day",day);renderSlots();window.scrollTo({top:0});return}
-  const more=ev.target.closest(".more:not(.notebtn):not(.unpick)");
+  const pb=ev.target.closest(".photobtn");
+  if(pb){if(!pdb){toast("Foto's zijn hier niet beschikbaar");return}phTarget=pb.dataset.id;$("#ph-file").click();return}
+  const th2=ev.target.closest(".thumb");
+  if(th2){lightbox(th2.dataset.id,+th2.dataset.n);return}
+  const lbb=ev.target.closest("[data-lb]");
+  if(lbb){if(lbb.dataset.lb==="d")delPhoto();else $("#lb").hidden=true;return}
+  const more=ev.target.closest(".more:not(.notebtn):not(.unpick):not(.photobtn)");
   if(more){open[more.dataset.k]=!open[more.dataset.k];renderSlots();return}
   const alt=ev.target.closest(".alt");
   if(alt){setPick(alt.dataset.k,+alt.dataset.j);renderSlots();renderNow();toast("Keuze aangepast");return}
@@ -833,6 +851,45 @@ setInterval(()=>{renderNow();if(!typing())renderSlots()},60000);
 window.addEventListener("hashchange",()=>{if(restoreFromHash())return;day=Math.max(0,DAYS.findIndex(d=>d.date===amsNow().date));renderNow();renderSlots();if(view==="mine")jumpNow()});
 let hiddenAt=0;
 document.addEventListener("visibilitychange",()=>{if(document.hidden){hiddenAt=Date.now();return}renderNow();if(!typing())renderSlots();if(view==="mine"&&hiddenAt&&Date.now()-hiddenAt>10*60*1000)jumpNow()});
+// Foto's per sessie: verkleind opgeslagen in IndexedDB op deze telefoon, thumbnails via object-URL's.
+const pdbReq=(m,fn)=>new Promise((res,rej)=>{const t=pdb.transaction("p",m),r=fn(t.objectStore("p"));t.oncomplete=()=>res(r.result);t.onerror=()=>rej(t.error)});
+try{
+  const q=indexedDB.open("tr26-photos",1);
+  q.onupgradeneeded=()=>q.result.createObjectStore("p",{keyPath:"n",autoIncrement:true});
+  q.onsuccess=async()=>{pdb=q.result;
+    for(const p of await pdbReq("readonly",s=>s.getAll()))(photos[p.sid]=photos[p.sid]||[]).push({n:p.n,url:URL.createObjectURL(p.blob)});
+    renderSlots()};
+}catch(e){}
+async function shrink(f){
+  const b=await createImageBitmap(f,{imageOrientation:"from-image"}),k=Math.min(1,1600/Math.max(b.width,b.height));
+  const c=document.createElement("canvas");c.width=Math.round(b.width*k);c.height=Math.round(b.height*k);
+  c.getContext("2d").drawImage(b,0,0,c.width,c.height);
+  return new Promise(r=>c.toBlob(r,"image/jpeg",.82));
+}
+$("#ph-file").addEventListener("change",async ev=>{
+  const files=[...ev.target.files],sid=phTarget;ev.target.value="";
+  let n=0;
+  for(const f of files){try{
+    const blob=await shrink(f),key=await pdbReq("readwrite",s=>s.add({sid,t:Date.now(),blob}));
+    (photos[sid]=photos[sid]||[]).push({n:key,url:URL.createObjectURL(blob)});n++;
+  }catch(e){toast("Foto bewaren mislukt")}}
+  if(n){const y=scrollY;renderSlots();window.scrollTo({top:y});toast(n>1?n+" foto's bewaard":"Foto bewaard");
+    try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}}
+});
+function lightbox(id,n){
+  let lb=$("#lb");if(!lb){lb=document.createElement("div");lb.id="lb";document.body.appendChild(lb)}
+  const p=(photos[id]||[]).find(x=>x.n===n);if(!p)return;
+  lb.dataset.id=id;lb.dataset.n=n;lb.hidden=false;
+  lb.innerHTML='<img src="'+p.url+'" alt="Foto"><div class="lbbar"><button data-lb="x" type="button">Sluiten</button><button data-lb="d" type="button">Verwijderen</button></div>';
+}
+async function delPhoto(){
+  const lb=$("#lb"),id=lb.dataset.id,n=+lb.dataset.n;
+  if(!confirm("Deze foto verwijderen?"))return;
+  try{await pdbReq("readwrite",s=>s.delete(n))}catch(e){toast("Verwijderen mislukt");return}
+  const p=photos[id].find(x=>x.n===n);URL.revokeObjectURL(p.url);
+  photos[id]=photos[id].filter(x=>x.n!==n);if(!photos[id].length)delete photos[id];
+  lb.hidden=true;const y=scrollY;renderSlots();window.scrollTo({top:y});toast("Foto verwijderd");
+}
 if("serviceWorker" in navigator){
   // Nieuwe versie gedetecteerd: de nieuwe service worker neemt het over terwijl de pagina nog de oude code toont.
   const had=!!navigator.serviceWorker.controller;
