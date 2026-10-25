@@ -269,6 +269,10 @@ button{font:inherit;color:inherit}
       <div id="pg-out" style="margin-top:8px" aria-live="polite"></div>
     </div>
     <div class="box">
+      <h4>Mijn foto's</h4>
+      <div id="ph-list">Nog geen foto's. Maak ze bij een sessie in Mijn dag met de knop Foto.</div>
+    </div>
+    <div class="box">
       <h4>Weergave</h4>
       <div style="display:flex;gap:6px;flex-wrap:wrap" id="themes">
         <button type="button" data-th="auto">Automatisch</button>
@@ -300,7 +304,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v25";
+const APP_VERSION="v26";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -490,7 +494,13 @@ function renderMine(){
 }
 
 let view=store.get("tr26-view","mine"), fTrack="", fq="";
+function renderPhotoList(){
+  const rows=ALL.filter(a=>photos[a[3]]).sort((a,b)=>a[0]-b[0]||a[1].localeCompare(b[1]));
+  if(!rows.length){$("#ph-list").textContent="Nog geen foto's. Maak ze bij een sessie in Mijn dag met de knop Foto.";return}
+  $("#ph-list").innerHTML=rows.map(a=>`<div style="margin-top:10px"><b>${DAYS[a[0]].name.slice(0,2)} ${a[1]}</b> · ${esc(a[6])}<div class="thumbs">${photos[a[3]].map(p=>`<button class="thumb" data-id="${a[3]}" data-n="${p.n}" aria-label="Foto bekijken"><img src="${p.url}" alt=""></button>`).join("")}</div></div>`).join("");
+}
 function renderFoot(){
+  renderPhotoList();
   const a=mode==="advice";
   $("#kiezen-tekst").innerHTML=a
     ?'Tik op een alternatief om het je keuze te maken, of ga naar <b>Alle sessies</b> om uit het hele programma aan te vinken. Met ☆ zet je een sessie als reserve; die verschijnt dan in het slot zodat je snel kunt wisselen. Keuzes, reserves en notities worden op deze telefoon onthouden. Het label bij een sessie laat zien of het een advies (1e, 2e of 3e keus) is of je eigen keuze.'
