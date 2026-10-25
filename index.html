@@ -261,6 +261,7 @@ button{font:inherit;color:inherit}
       </div>
       <input type="file" id="bk-file" accept=".json,application/json" hidden>
     <input type="file" id="ph-file" accept="image/*" multiple hidden>
+    <input type="file" id="ph-cam" accept="image/*" capture="environment" hidden>
     </div>
     <div class="box">
       <h4>Programma controleren</h4>
@@ -304,7 +305,7 @@ button{font:inherit;color:inherit}
 
 <script>
 // Houd gelijk aan VERSION in sw.js
-const APP_VERSION="v26";
+const APP_VERSION="v27";
 const T={AI:["ai","AI & Agents"],DEV:["dev","Dev"],SEC:["sec","Architectuur & Security"],OPS:["ops","Cloud & DevOps"],DATA:["data","Data"],LEAD:["lead","Leadership"],KEY:["key","Keynote"]};
 const L={I:"Introductie",M:"Gemiddeld",A:"Gevorderd"};
 const URL0="https://techorama.nl/schedule/sessions/";
@@ -466,7 +467,8 @@ function renderMine(){
           ${o[6]?`<p class="desc">${esc(o[6])}</p>`:""}
           <div class="tools">
             <button class="more" data-k="${k}" aria-expanded="${!!open[k]}">${open[k]?"Minder":advice&&o[7]?"Waarom deze sessie":"Meer info"}</button>
-            <button class="more photobtn ${(photos[o[5]]||[]).length?"has":""}" data-id="${o[5]}">📷 ${(photos[o[5]]||[]).length?"Foto's ("+photos[o[5]].length+")":"Foto"}</button>
+            <button class="more photobtn ${(photos[o[5]]||[]).length?"has":""}" data-id="${o[5]}">📷 ${(photos[o[5]]||[]).length?"Foto's ("+photos[o[5]].length+")":"Foto maken"}</button>
+            <button class="more photobtn gal" data-id="${o[5]}">🖼 Uit galerij</button>
             <button class="more notebtn ${notes[o[5]]?"has":""}" data-k="${k}" aria-expanded="${!!nopen[k]}">✎ ${notes[o[5]]?"Notitie ●":"Notitie"}</button>
             ${advice?"":`<button class="more unpick" data-k="${k}">✕ Uit mijn dag</button>`}
           </div>
@@ -690,7 +692,7 @@ document.addEventListener("click",ev=>{
   const tab=ev.target.closest(".days button");
   if(tab){day=+tab.dataset.day;store.set("tr26-day",day);renderSlots();window.scrollTo({top:0});return}
   const pb=ev.target.closest(".photobtn");
-  if(pb){if(!pdb){toast("Foto's zijn hier niet beschikbaar");return}phTarget=pb.dataset.id;$("#ph-file").click();return}
+  if(pb){if(!pdb){toast("Foto's zijn hier niet beschikbaar");return}phTarget=pb.dataset.id;$(pb.classList.contains("gal")?"#ph-file":"#ph-cam").click();return}
   const th2=ev.target.closest(".thumb");
   if(th2){lightbox(th2.dataset.id,+th2.dataset.n);return}
   const lbb=ev.target.closest("[data-lb]");
@@ -876,7 +878,7 @@ async function shrink(f){
   c.getContext("2d").drawImage(b,0,0,c.width,c.height);
   return new Promise(r=>c.toBlob(r,"image/jpeg",.82));
 }
-$("#ph-file").addEventListener("change",async ev=>{
+for(const el of [$("#ph-file"),$("#ph-cam")])el.addEventListener("change",async ev=>{
   const files=[...ev.target.files],sid=phTarget;ev.target.value="";
   let n=0;
   for(const f of files){try{
